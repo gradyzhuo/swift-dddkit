@@ -1,0 +1,4 @@
+# https://github.com/nicklockwood/SwiftFormat.git
+--swiftversion 5.9 # 照你的 Swift 版本
+--extensionacl on-declarations
+--disable redundantExtensionACL

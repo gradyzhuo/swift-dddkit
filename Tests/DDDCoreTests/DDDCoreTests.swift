@@ -1,5 +1,5 @@
-import XCTest
 @testable import DDDCore
+import XCTest
 
 final class DDDCoreTests: XCTestCase {
     func testExample() throws {
