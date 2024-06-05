@@ -2,18 +2,13 @@ import Foundation
 import DDDCore
 import EventStoreDB
 
-public protocol EventTypeMapper {
-    func mapping(eventType: String, payload: Data) -> (any DomainEvent)?
-   
-    init()
-}
-
-public class KurrentStorageCoordinator<AggregateRootType: AggregateRoot, Mapper: EventTypeMapper>: EventStorageCoordinator {
-    let mapper: Mapper
+public class KurrentStorageCoordinator<AggregateRootType: AggregateRoot>: EventStorageCoordinator {
+    
+    let eventMapper: any EventTypeMapper
     let client: EventStoreDBClient
     
-    public init(mapper: Mapper, client: EventStoreDBClient){
-        self.mapper = mapper
+    public init(client: EventStoreDBClient, eventMapper: any EventTypeMapper){
+        self.eventMapper = eventMapper
         self.client = client
     }
     
@@ -44,7 +39,7 @@ public class KurrentStorageCoordinator<AggregateRootType: AggregateRoot, Mapper:
                 return 
             }
             
-            guard let event = self.mapper.mapping(eventType: readEvent.recordedEvent.eventType, payload: readEvent.recordedEvent.data) else {
+            guard let event = try self.eventMapper.mapping(eventData: readEvent.recordedEvent) else {
                 return
             }
             

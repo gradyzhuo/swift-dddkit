@@ -63,7 +63,8 @@ extension AggregateRoot {
     }
 
     public func markAsDelete() throws{
-        try apply(event: DeletedEventType(eventId: UUID().uuidString, aggregateId: "\(self.id)"))
+        let deletedEvent = DeletedEventType(aggregateId: "\(self.id)")
+        try apply(event: deletedEvent)
     }
 }
 

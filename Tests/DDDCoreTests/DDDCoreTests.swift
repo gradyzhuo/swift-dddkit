@@ -7,34 +7,20 @@ import XCTest
 
 struct TestAggregateRootCreated: DomainEvent {
     var eventType: String = "TestAggregateRootCreated"
-
     var occurred: Date = .now
-
     var aggregateId: String
-
-    var eventId: String
-
-
 }
 
 struct TestAggregateRootDeleted: DeletedEvent {
-    
-
-    var eventId: String
-
     var eventType: String = "TestAggregateRootDeleted"
 
     var occurred: Date = .now
 
     var aggregateId: String
 
-    init(eventId: String, aggregateId: String) {
-        self.eventId = eventId
+    init(aggregateId: String) {
         self.aggregateId = aggregateId
     }
-    // init() {
-    //     self.id = UUID.init().uuidString
-    // }
 
 }
 
@@ -51,7 +37,7 @@ class TestAggregateRoot: AggregateRoot {
     init(id: String){
         self.id = id
         
-        let event = TestAggregateRootCreated(aggregateId: id, eventId: UUID().uuidString)
+        let event = TestAggregateRootCreated(aggregateId: id)
         try? self.apply(event: event)
     }
 
@@ -69,35 +55,78 @@ class TestAggregateRoot: AggregateRoot {
 
 
 struct Mapper: EventTypeMapper {
-    func mapping(eventType: String, payload: Data) -> (any DDDCore.DomainEvent)? {
-        return nil
+    func mapping(eventData: EventStoreDB.RecordedEvent) throws -> (any DDDCore.DomainEvent)? {
+        return switch eventData.eventType {
+        case "TestAggregateRootCreated":
+            try eventData.decode(to: TestAggregateRootCreated.self)
+        case "TestAggregateRootDeleted":
+            try eventData.decode(to: TestAggregateRootDeleted.self)
+        default:
+            nil
+        }
     }
+    
 }
 
 class TestRepository: EventSourcingRepository {
     typealias AggregateRootType = TestAggregateRoot
-    typealias StorageCoordinator = KurrentStorageCoordinator<TestAggregateRoot,Mapper>
+    typealias StorageCoordinator = KurrentStorageCoordinator<TestAggregateRoot>
 
     var coordinator: StorageCoordinator
 
     init() throws {
         let client = try EventStoreDBClient(settings: .localhost())
-        self.coordinator = .init(mapper: Mapper(), client: client)
+        self.coordinator = .init(client: client, eventMapper: Mapper())
     }
 }
 
 final class DDDCoreTests: XCTestCase {
-    func testExample() throws {
-        // XCTest Documentation
-        // https://developer.apple.com/documentation/xctest
-
-        // Defining Test Cases and Test Methods
-        // https://developer.apple.com/documentation/xctest/defining_test_cases_and_test_methods
+    override func setUp() async throws {
+        let client = try EventStoreDBClient(settings: .localhost())
+        try await client.deleteStream(to: .init(name: TestAggregateRoot.getStreamName(id: "idForTesting"))) { options in
+            options.revision(expected: .streamExists)
+        }
+    }
+    
+    func testRepositorySave() async throws {
+        let testId = "idForTesting"
+        let aggregateRoot = TestAggregateRoot(id: testId)
+        let repository = try TestRepository()
         
+        try await repository.save(aggregateRoot: aggregateRoot)
+
+        let finded = try await repository.find(byId: testId)
+        XCTAssertNotNil(finded)
         
-//        KurrentStorageCoordinator.init(mapper: , client: <#T##EventStoreDBClient#>)
-
-
-
+    }
+    
+    
+    func testAggregateRootDeleted() async throws {
+        let testId = "idForTesting"
+        let aggregateRoot = TestAggregateRoot(id: testId)
+        let repository = try TestRepository()
+        
+        try await repository.save(aggregateRoot: aggregateRoot)
+        
+        try await repository.delete(byId: testId)
+        
+        let finded = try await repository.find(byId: testId)
+        XCTAssertNil(finded)
+        
+    }
+    
+    
+    func testAggregateRootDeletedShowForcly() async throws {
+        let testId = "idForTesting"
+        let aggregateRoot = TestAggregateRoot(id: testId)
+        let repository = try TestRepository()
+        
+        try await repository.save(aggregateRoot: aggregateRoot)
+        
+        try await repository.delete(byId: testId)
+        
+        let finded = try await repository.find(byId: testId, forcly: true)
+        XCTAssertNotNil(finded)
+        
     }
 }

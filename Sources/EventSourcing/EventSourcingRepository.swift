@@ -14,7 +14,7 @@ extension EventSourcingRepository {
             return nil
         }
 
-        guard !forcly && (events.contains{ $0 is AggregateRootType.DeletedEventType }) else {
+        guard forcly || !(events.contains{ $0 is AggregateRootType.DeletedEventType }) else {
             return nil
         }
 
