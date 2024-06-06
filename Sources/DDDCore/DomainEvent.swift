@@ -1,8 +1,6 @@
 import Foundation
 
-public protocol DomainEvent: Codable, Identifiable{
-    typealias ID = UUID
-    
+public protocol DomainEvent: Codable, Identifiable where ID == UUID{
     var eventType: String { get }
     var aggregateRootId: String { get }
     var occurred: Date { get }
