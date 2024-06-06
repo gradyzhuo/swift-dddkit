@@ -10,7 +10,7 @@ public protocol DomainEvent: Codable, Identifiable{
 
 extension DomainEvent {
     
-    var eventType: String {
+    public var eventType: String {
         get{
             "\(Self.self)"
         }
