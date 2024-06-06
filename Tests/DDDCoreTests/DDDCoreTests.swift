@@ -74,13 +74,14 @@ class TestRepository: EventSourcingRepository {
 
     var coordinator: StorageCoordinator
 
-    init() throws {
-        let client = try EventStoreDBClient(settings: .localhost())
+    init(client: EventStoreDBClient) {
         self.coordinator = .init(client: client, eventMapper: Mapper())
     }
 }
 
 final class DDDCoreTests: XCTestCase {
+
+    
     override func setUp() async throws {
         let client = try EventStoreDBClient(settings: .localhost())
         try await client.deleteStream(to: .init(name: TestAggregateRoot.getStreamName(id: "idForTesting"))) { options in
@@ -91,7 +92,7 @@ final class DDDCoreTests: XCTestCase {
     func testRepositorySave() async throws {
         let testId = "idForTesting"
         let aggregateRoot = TestAggregateRoot(id: testId)
-        let repository = try TestRepository()
+        let repository = try TestRepository(client: .init(settings: .localhost()))
         
         try await repository.save(aggregateRoot: aggregateRoot)
 
@@ -104,7 +105,7 @@ final class DDDCoreTests: XCTestCase {
     func testAggregateRootDeleted() async throws {
         let testId = "idForTesting"
         let aggregateRoot = TestAggregateRoot(id: testId)
-        let repository = try TestRepository()
+        let repository = try TestRepository(client: .init(settings: .localhost()))
         
         try await repository.save(aggregateRoot: aggregateRoot)
         
@@ -119,7 +120,7 @@ final class DDDCoreTests: XCTestCase {
     func testAggregateRootDeletedShowForcly() async throws {
         let testId = "idForTesting"
         let aggregateRoot = TestAggregateRoot(id: testId)
-        let repository = try TestRepository()
+        let repository = try TestRepository(client: .init(settings: .localhost()))
         
         try await repository.save(aggregateRoot: aggregateRoot)
         

@@ -80,8 +80,7 @@ class TestRepository: EventSourcingRepository {
 
     var coordinator: StorageCoordinator
 
-    init() throws {
-        let client = try EventStoreDBClient(settings: .localhost())
+    init(client: EventStoreDBClient) {
         self.coordinator = .init(client: client, eventMapper: Mapper())
     }
 }
