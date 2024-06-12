@@ -1,8 +1,8 @@
 import DDDCore
 import Foundation
 
-public protocol EventSourcingRepository<AggregateRootType, StorageCoordinator>: Repository {
-    associatedtype StorageCoordinator: EventStorageCoordinator where StorageCoordinator.AggregateRootType == AggregateRootType
+public protocol EventSourcingRepository<StorageCoordinator>: Repository {
+    associatedtype StorageCoordinator: EventStorageCoordinator<AggregateRootType>
 
     var coordinator: StorageCoordinator { get }
 }
