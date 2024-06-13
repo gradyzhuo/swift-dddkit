@@ -157,3 +157,17 @@ try await repository.delete(byId: testId)
 let finded = try await repository.find(byId: testId, forcly: true)
 XCTAssertNotNil(finded)
 ```
+
+### Delete Stream from AggregateRootType and id
+```swift
+//remeber import 
+import TestUtilities
+
+var client: EventStoreDBClient = .init(settings: .localhost())
+await client.clearStreams(aggregateRootType: TestAggregateRoot.self, id: "idForTesting") { error in
+    print(error)
+}
+
+//or
+await client.clearStreams(aggregateRootType: TestAggregateRoot.self, id: "idForTesting")
+```

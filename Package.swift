@@ -54,9 +54,16 @@ let package = Package(
                 .product(name: "EventStoreDB", package: "eventstoredb-swift"),
             ]
         ),
+        .target(
+            name: "TestUtility",
+            dependencies: [
+                "DDDCore",
+                .product(name: "EventStoreDB", package: "eventstoredb-swift"),
+            ]
+        ),
         .testTarget(
             name: "DDDCoreTests",
-            dependencies: ["DDDKit"]
+            dependencies: ["DDDKit", "TestUtility"]
         ),
     ]
 )

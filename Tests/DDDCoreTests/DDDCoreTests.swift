@@ -2,7 +2,9 @@
 @testable import KurrentSupport
 @testable import EventSourcing
 
+
 import EventStoreDB
+import TestUtility
 import XCTest
 
 struct TestAggregateRootCreated: DomainEvent {
@@ -80,14 +82,11 @@ class TestRepository: EventSourcingRepository {
 }
 
 final class DDDCoreTests: XCTestCase {
+    var client: EventStoreDBClient?
     override func setUp() async throws {
-        do {
-            let client = try EventStoreDBClient(settings: .localhost())
-            try await client.deleteStream(to: .init(name: TestAggregateRoot.getStreamName(id: "idForTesting"))) { options in
-                options.revision(expected: .streamExists)
-            }
-        } catch {
-            print("stream not found.")
+        try self.client = .init(settings: .localhost())
+        await client?.clearStreams(aggregateRootType: TestAggregateRoot.self, id: "idForTesting"){
+            print("error:", $0)
         }
     }
 
@@ -127,5 +126,7 @@ final class DDDCoreTests: XCTestCase {
         let finded = try await repository.find(byId: testId, forcly: true)
         XCTAssertNotNil(finded)
         XCTAssertEqual(finded?.isDeleted, true)
+    
     }
 }
+
