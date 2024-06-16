@@ -10,11 +10,11 @@ import Foundation
 public class AggregateRootMetadata {
     var events: [any DomainEvent] = []
 
-    public package(set) var isDeleted: Bool
+    public package(set) var deleted: Bool
     public package(set) var version: UInt?
 
     public init() {
-        isDeleted = false
+        deleted = false
         version = nil
     }
 }

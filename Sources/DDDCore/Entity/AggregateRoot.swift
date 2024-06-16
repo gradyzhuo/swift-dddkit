@@ -26,9 +26,14 @@ extension AggregateRoot {
 
         try self.init(first: createdEvent, other: sortedEvents)
     }
-
-    public var isDeleted: Bool {
-        metadata.isDeleted
+    
+    public var deleted: Bool {
+        set{
+            metadata.deleted = newValue
+        }
+        get {
+            metadata.deleted
+        }
     }
 
     public var events: [any DomainEvent] {

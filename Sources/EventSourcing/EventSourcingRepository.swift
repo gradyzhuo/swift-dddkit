@@ -32,7 +32,6 @@ extension EventSourcingRepository {
         let aggregateRoot = try AggregateRootType(events: events)
 
         if let deletedEvent {
-            aggregateRoot?.metadata.isDeleted = true
             try aggregateRoot?.apply(event: deletedEvent)
         }
 
