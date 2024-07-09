@@ -1,7 +1,7 @@
 import DDDCore
 
 public class EventBus: DomainEventBus {
-    private var eventSubscribers: [String: (DomainEvent) async throws -> Void]
+    private var eventSubscribers: [String: (any DomainEvent) async throws -> Void]
 
     public func publish(event: some DomainEvent) async throws {
         let handler = eventSubscribers[event.eventType]
