@@ -32,21 +32,28 @@ public class KurrentStorageCoordinator<AggregateRootType: AggregateRoot>: EventS
 
     public func fetchEvents(byId aggregateRootId: AggregateRootType.ID) async throws -> [any DomainEvent]? {
         let streamName = AggregateRootType.getStreamName(id: aggregateRootId)
-        let responses = try client.readStream(to: .init(name: streamName), cursor: .start)
+        do{
+            let responses = try client.readStream(to: .init(name: streamName), cursor: .start)
 
-        return try await responses.reduce(into: nil) {
-            guard case let .event(readEvent) = $1.content else {
-                return
-            }
+            return try await responses.reduce(into: nil) {
+                guard case let .event(readEvent) = $1.content else {
+                    return
+                }
 
-            guard let event = try self.eventMapper.mapping(eventData: readEvent.recordedEvent) else {
-                return
-            }
+                guard let event = try self.eventMapper.mapping(eventData: readEvent.recordedEvent) else {
+                    return
+                }
 
-            if $0 == nil {
-                $0 = .init()
+                if $0 == nil {
+                    $0 = .init()
+                }
+                $0?.append(event)
             }
-            $0?.append(event)
+        }catch ClientError.streamNotFound(let message){
+            print("KurrentError streamNotFound: \(message)")
+            return nil
+        }catch {
+            throw error
         }
     }
 }
