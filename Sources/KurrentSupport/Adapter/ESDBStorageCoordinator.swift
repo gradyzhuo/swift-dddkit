@@ -3,7 +3,7 @@ import EventSourcing
 import EventStoreDB
 import Foundation
 
-public class KurrentStorageCoordinator<AggregateRootType: AggregateRoot>: EventStorageCoordinator {
+public class KurrentStorageCoordinator<ProjectableType: Projectable>: EventStorageCoordinator {
     let eventMapper: any EventTypeMapper
     let client: EventStoreDBClient
 
@@ -12,8 +12,7 @@ public class KurrentStorageCoordinator<AggregateRootType: AggregateRoot>: EventS
         self.client = client
     }
 
-    public func append(events: [any DDDCore.DomainEvent], byId aggregateRootId: AggregateRootType.ID, version: UInt?) async throws -> UInt? {
-        let streamName = AggregateRootType.getStreamName(id: aggregateRootId)
+    public func append(events: [any DDDCore.DomainEvent], byStreamName streamName: String, version: UInt?) async throws -> UInt? {
         let events = try events.map {
             try EventData(id: $0.id, eventType: $0.eventType, payload: $0)
         }
@@ -30,8 +29,7 @@ public class KurrentStorageCoordinator<AggregateRootType: AggregateRoot>: EventS
         }
     }
 
-    public func fetchEvents(byId aggregateRootId: AggregateRootType.ID) async throws -> [any DomainEvent]? {
-        let streamName = AggregateRootType.getStreamName(id: aggregateRootId)
+    public func fetchEvents(byStreamName streamName: String) async throws -> [any DomainEvent]? {
         do{
             let responses = try client.readStream(to: .init(name: streamName), cursor: .start)
 

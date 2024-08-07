@@ -81,6 +81,27 @@ class TestRepository: EventSourcingRepository {
     }
 }
 
+class TestReadModel: ReadModel {
+
+    required init?(other events: [any DomainEvent]) throws {
+        try self.apply(events: events)
+    }
+
+    func when(happened event: some DDDCore.DomainEvent) throws {}
+}
+
+class TestProjection: EventSourcingProjection {
+
+    typealias ProjectableType = TestReadModel
+    typealias StorageCoordinator = KurrentStorageCoordinator<TestReadModel>
+
+    var coordinator: StorageCoordinator
+
+    init(client: EventStoreDBClient) {
+        coordinator = .init(client: client, eventMapper: Mapper())
+    }
+}
+
 final class DDDCoreTests: XCTestCase {
     var client: EventStoreDBClient?
     override func setUp() async throws {
@@ -114,7 +135,7 @@ final class DDDCoreTests: XCTestCase {
         XCTAssertNil(finded)
     }
 
-    func testAggregateRootDeletedShowForcly() async throws {
+    func test_deleted_aggregate_root_should_not_be_hidden() async throws {
         let testId = "idForTesting"
         let aggregateRoot = TestAggregateRoot(id: testId)
         let repository = try TestRepository(client: .init(settings: .localhost()))
@@ -123,10 +144,22 @@ final class DDDCoreTests: XCTestCase {
 
         try await repository.delete(aggregateRoot: aggregateRoot)
 
-        let finded = try await repository.find(byId: testId, forcly: true)
+        let finded = try await repository.find(byId: testId, hiddingDeleted: false)
         XCTAssertNotNil(finded)
-        XCTAssertEqual(finded?.isDeleted, true)
-    
+        XCTAssertEqual(finded?.deleted, false)
+    }
+
+    func testProjectionFind() async throws {
+        let testId = "idForTesting"
+        let aggregateRoot = TestAggregateRoot(id: testId)
+        let repository = try TestRepository(client: .init(settings: .localhost()))
+        try await repository.save(aggregateRoot: aggregateRoot)
+
+        let streamName = TestAggregateRoot.getStreamName(id: testId)
+        let projection = try TestProjection(client: .init(settings: .localhost()))
+
+        let finded = try await projection.find(byStreamName: streamName)
+        XCTAssertNotNil(finded)
     }
 }
 

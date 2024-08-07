@@ -13,7 +13,8 @@ extension EventSourcingRepository {
     }
     
     public func find(byId id: AggregateRootType.ID, hiddingDeleted: Bool) async throws -> AggregateRootType? {
-        guard var events = try await coordinator.fetchEvents(byId: id) else {
+        let streamName = AggregateRootType.getStreamName(id: id)
+        guard var events = try await coordinator.fetchEvents(byStreamName: streamName) else {
             return nil
         }
 
@@ -41,7 +42,8 @@ extension EventSourcingRepository {
     }
 
     public func save(aggregateRoot: AggregateRootType) async throws {
-        let latestRevision: UInt? = try await coordinator.append(events: aggregateRoot.events, byId: aggregateRoot.id, version: aggregateRoot.version)
+        let streamName = AggregateRootType.getStreamName(id: aggregateRoot.id)
+        let latestRevision: UInt? = try await coordinator.append(events: aggregateRoot.events, byStreamName: streamName, version: aggregateRoot.version)
         aggregateRoot.metadata.version = latestRevision
         try aggregateRoot.clearAllDomainEvents()
     }

@@ -23,6 +23,18 @@ extension EventStoreDBClient {
             errorHandler?(error)
         }
     }
+
+    public func clearStreams<T: Projectable>(projectableType: T.Type, streamName: String, errorHandler: ((_ error: Error)->Void)? = nil) async {
+        do{
+            let streamIdentifier: Stream.Identifier = .init(name: streamName)
+            try await self.deleteStream(to: streamIdentifier) { options in
+                options.revision(expected: .streamExists)
+            }
+        }catch {
+            logger.warning("The error happended when clear stream with \(streamName) in \(projectableType). error message: \(error)")
+            errorHandler?(error)
+        }
+    }
 }
 
 

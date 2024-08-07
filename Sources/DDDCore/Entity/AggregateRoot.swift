@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol AggregateRoot: Projectable {
+public protocol AggregateRoot: Projectable, Entity {
     associatedtype CreatedEventType: DomainEvent
     associatedtype DeletedEventType: DeletedEvent
 
@@ -9,9 +9,6 @@ public protocol AggregateRoot: Projectable {
     init?(first createdEvent: CreatedEventType, other events: [any DomainEvent]) throws
 
     func add(domainEvent: some DomainEvent) throws
-    // func when(happened event: some DomainEvent) throws
-
-    // func ensureInvariant() throws
     func markAsDelete() throws
 }
 

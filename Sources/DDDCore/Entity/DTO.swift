@@ -1,10 +1,10 @@
-public protocol ReadModel: Projectable {
+public protocol DTO: Projectable {
 
     init?(other events: [any DomainEvent]) throws
 
 }
 
-extension ReadModel {
+extension DTO {
     public init?(events: [any DomainEvent]) throws {
         let sortedEvents = events.sorted {
             $0.occurred < $1.occurred
