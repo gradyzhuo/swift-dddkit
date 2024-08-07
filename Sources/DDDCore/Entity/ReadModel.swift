@@ -1,6 +1,6 @@
 public protocol ReadModel: Projectable {
 
-    init?(other events: [any DomainEvent]) throws
+    init?(sortedEvents events: [any DomainEvent]) throws
 
 }
 
@@ -10,18 +10,18 @@ extension ReadModel {
             $0.occurred < $1.occurred
         }
 
-        try self.init(other: sortedEvents)
+        try self.init(sortedEvents: sortedEvents)
     }
 
-    public func apply(event: some DomainEvent) throws {
+    public func restore(event: some DomainEvent) throws {
         try ensureInvariant()
         try when(happened: event)
         try ensureInvariant()
     }
 
-    public func apply(events: [any DomainEvent]) throws {
+    public func restore(events: [any DomainEvent]) throws {
         for event in events {
-            try apply(event: event)
+            try restore(event: event)
         }
     }
 
