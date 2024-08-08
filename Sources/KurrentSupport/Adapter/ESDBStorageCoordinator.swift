@@ -31,7 +31,9 @@ public class KurrentStorageCoordinator<ProjectableType: Projectable>: EventStora
 
     public func fetchEvents(byStreamName streamName: String) async throws -> [any DomainEvent]? {
         do{
-            let responses = try client.readStream(to: .init(name: streamName), cursor: .start)
+            let responses = try client.readStream(to: .init(name: streamName), cursor: .start) { options in
+                options.set(resolveLinks: true)
+            }
 
             return try await responses.reduce(into: nil) {
                 guard case let .event(readEvent) = $1.content else {
