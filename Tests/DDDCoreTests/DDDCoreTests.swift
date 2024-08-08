@@ -91,7 +91,6 @@ class TestReadModel: ReadModel {
 }
 
 class TestProjection: EventSourcingProjection {
-
     typealias ProjectableType = TestReadModel
     typealias StorageCoordinator = KurrentStorageCoordinator<TestReadModel>
 

@@ -1,6 +1,6 @@
 
 public protocol Projection: AnyObject {
-    associatedtype ProjectableType: Projectable
+    associatedtype ProjectableType: ReadModel
 
     func find(byStreamName streamName: String) async throws -> ProjectableType?
 }
