@@ -64,13 +64,3 @@ extension AggregateRoot {
 
     public func ensureInvariant() throws {}
 }
-
-extension AggregateRoot {
-    public static var category: String {
-        "\(Self.self)"
-    }
-
-    public static func getStreamName(id: ID) -> String {
-        "\(category)-\(id)"
-    }
-}
