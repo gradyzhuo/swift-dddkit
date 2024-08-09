@@ -81,18 +81,10 @@ class TestRepository: EventSourcingRepository {
     }
 }
 
-class TestReadModel: ReadModel {
-    required init?(events: [any DDDCore.DomainEvent]) throws {
-        try self.restore(events: events)
-    }
-
-    func when(happened event: some DDDCore.DomainEvent) throws {}
-
-}
-
 class TestProjector: EventSourcingProjector {
-    typealias ProjectableType = TestReadModel
-    typealias StorageCoordinator = KurrentStorageCoordinator<TestReadModel>
+
+    typealias ProjectableType = TestAggregateRoot
+    typealias StorageCoordinator = KurrentStorageCoordinator<TestAggregateRoot>
 
     var coordinator: StorageCoordinator
 
@@ -154,10 +146,8 @@ final class DDDCoreTests: XCTestCase {
         let repository = try TestRepository(client: .init(settings: .localhost()))
         try await repository.save(aggregateRoot: aggregateRoot)
 
-        let streamName = TestAggregateRoot.getStreamName(id: testId)
-        let projection = try TestProjector(client: .init(settings: .localhost()))
-
-        let finded = try await projection.find(byStreamName: streamName)
+        let projector = try TestProjector(client: .init(settings: .localhost()))
+        let finded = try await projector.find(byId: testId)
         XCTAssertNotNil(finded)
     }
 }

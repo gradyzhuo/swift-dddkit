@@ -9,8 +9,8 @@ public protocol EventSourcingProjector<StorageCoordinator>: Projector {
 
 extension EventSourcingProjector {
 
-    public func find(byStreamName streamName: String) async throws -> ProjectableType? {
-        guard let events = try await coordinator.fetchEvents(byStreamName: streamName) else {
+    public func find(byId id: ProjectableType.ID) async throws -> ProjectableType? {
+        guard let events = try await coordinator.fetchEvents(byId: id) else {
             return nil
         }
 

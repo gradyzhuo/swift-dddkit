@@ -12,7 +12,8 @@ public class KurrentStorageCoordinator<ProjectableType: Projectable>: EventStora
         self.client = client
     }
 
-    public func append(events: [any DDDCore.DomainEvent], byStreamName streamName: String, version: UInt?) async throws -> UInt? {
+    public func append(events: [any DDDCore.DomainEvent], byId id: ProjectableType.ID, version: UInt?) async throws -> UInt? {
+        let streamName = ProjectableType.getStreamName(id: id)
         let events = try events.map {
             try EventData(id: $0.id, eventType: $0.eventType, payload: $0)
         }
@@ -29,7 +30,8 @@ public class KurrentStorageCoordinator<ProjectableType: Projectable>: EventStora
         }
     }
 
-    public func fetchEvents(byStreamName streamName: String) async throws -> [any DomainEvent]? {
+    public func fetchEvents(byId id: ProjectableType.ID) async throws -> [any DomainEvent]? {
+        let streamName = ProjectableType.getStreamName(id: id)
         do{
             let responses = try client.readStream(to: .init(name: streamName), cursor: .start) { options in
                 options.set(resolveLinks: true)
