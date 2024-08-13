@@ -97,7 +97,7 @@ final class DDDCoreTests: XCTestCase {
     var client: EventStoreDBClient?
     override func setUp() async throws {
         try self.client = .init(settings: .localhost())
-        await client?.clearStreams(aggregateRootType: TestAggregateRoot.self, id: "idForTesting"){
+        await client?.clearStreams(projectableType: TestAggregateRoot.self, id: "idForTesting") {
             print("error:", $0)
         }
     }

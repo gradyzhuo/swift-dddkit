@@ -30,7 +30,6 @@ let package = Package(
         .target(
             name: "DDDKit", dependencies: [
                 "DDDCore",
-                "CQRS",
                 "EventSourcing",
                 "KurrentSupport",
                 "EventBus",
@@ -39,12 +38,6 @@ let package = Package(
         ),
         .target(
             name: "DDDCore"),
-        .target(
-            name: "CQRS",
-            dependencies: [
-                "DDDCore",
-            ]
-        ),
         .target(
             name: "EventSourcing",
             dependencies: [
