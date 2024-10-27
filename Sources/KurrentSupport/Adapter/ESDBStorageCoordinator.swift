@@ -30,18 +30,18 @@ public class KurrentStorageCoordinator<ProjectableType: Projectable>: EventStora
         }
     }
 
-    public func fetchEvents(byId id: ProjectableType.ID) async throws -> [any DomainEvent]? {
+    public func fetchEvents(byId id: ProjectableType.ID) async throws -> (events: [any DomainEvent]?, latestRevision: UInt?) {
         let streamName = ProjectableType.getStreamName(id: id)
         do{
             let responses = try client.readStream(to: .init(name: streamName), cursor: .start) { options in
                 options.set(resolveLinks: true)
             }
 
-            return try await responses.reduce(into: nil) {
+            let events: [any DomainEvent]? = try await responses.reduce(into: nil) {
                 guard case let .event(readEvent) = $1.content else {
                     return
                 }
-
+                
                 guard let event = try self.eventMapper.mapping(eventData: readEvent.recordedEvent) else {
                     return
                 }
@@ -51,9 +51,11 @@ public class KurrentStorageCoordinator<ProjectableType: Projectable>: EventStora
                 }
                 $0?.append(event)
             }
+            return (events: events, latestRevision: nil)
+            
         }catch ClientError.streamNotFound(let message){
             print("KurrentError streamNotFound: \(message)")
-            return nil
+            return (events: nil, latestRevision: nil)
         }catch {
             throw error
         }
