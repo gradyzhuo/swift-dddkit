@@ -10,11 +10,11 @@ public protocol EventSourcingProjector<StorageCoordinator>: Projector {
 extension EventSourcingProjector {
 
     public func find(byId id: ProjectableType.ID) async throws -> ProjectableType? {
-        guard let events = try await coordinator.fetchEvents(byId: id) else {
+        guard let fetechedEvents = try await coordinator.fetchEvents(byId: id) else {
             return nil
         }
-
-        let projectable = try ProjectableType(events: events)
+        
+        let projectable = try ProjectableType(events: fetechedEvents.events)
         return projectable
     }
 }

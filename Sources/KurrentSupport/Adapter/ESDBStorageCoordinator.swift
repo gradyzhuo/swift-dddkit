@@ -30,14 +30,14 @@ public class KurrentStorageCoordinator<ProjectableType: Projectable>: EventStora
         }
     }
 
-    public func fetchEvents(byId id: ProjectableType.ID) async throws -> (events: [any DomainEvent]?, latestRevision: UInt?) {
+    public func fetchEvents(byId id: ProjectableType.ID) async throws -> (events: [any DomainEvent], latestRevision: UInt64)? {
         let streamName = ProjectableType.getStreamName(id: id)
         do{
             let responses = try client.readStream(to: .init(name: streamName), cursor: .start) { options in
                 options.set(resolveLinks: true)
             }
 
-            let events: [any DomainEvent]? = try await responses.reduce(into: nil) {
+            let eventWrappers: [(event: any DomainEvent, revision: UInt64)] = try await responses.reduce(into: .init()) {
                 guard case let .event(readEvent) = $1.content else {
                     return
                 }
@@ -45,17 +45,21 @@ public class KurrentStorageCoordinator<ProjectableType: Projectable>: EventStora
                 guard let event = try self.eventMapper.mapping(eventData: readEvent.recordedEvent) else {
                     return
                 }
-
-                if $0 == nil {
-                    $0 = .init()
-                }
-                $0?.append(event)
+                
+                $0.append((event: event, revision: readEvent.recordedEvent.revision))
             }
-            return (events: events, latestRevision: nil)
+            
+            let sortedEventWrappers = eventWrappers.sorted(using: KeyPathComparator(\.revision, order: .reverse))
+            guard let latestRevision = sortedEventWrappers.first?.revision else {
+                return nil
+            }
+            
+            let events = sortedEventWrappers.map(\.event)
+            return (events: events, latestRevision: latestRevision)
             
         }catch ClientError.streamNotFound(let message){
             print("KurrentError streamNotFound: \(message)")
-            return (events: nil, latestRevision: nil)
+            return nil
         }catch {
             throw error
         }
