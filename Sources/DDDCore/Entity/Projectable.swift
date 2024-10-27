@@ -2,6 +2,8 @@ public protocol Projectable {
 
     associatedtype ID: Hashable
     
+    static var category: String { get }
+    
     var id: ID { get }
     init?(events: [any DomainEvent]) throws
     func when(happened event: some DomainEvent) throws
