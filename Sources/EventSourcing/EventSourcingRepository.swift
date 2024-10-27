@@ -13,10 +13,12 @@ extension EventSourcingRepository {
     }
     
     public func find(byId id: AggregateRootType.ID, hiddingDeleted: Bool) async throws -> AggregateRootType? {
-        let fetchEvents = try await coordinator.fetchEvents(byId: id)
-        guard var events = fetchEvents?.events else {
+        
+        guard let fetchEventsResult = try await coordinator.fetchEvents(byId: id) else {
             return nil
         }
+        
+        let events = fetchEventsResult.events
 
         guard !(hiddingDeleted && (events.contains { $0 is AggregateRootType.DeletedEventType })) else {
             return nil
@@ -26,20 +28,15 @@ extension EventSourcingRepository {
             $0 is AggregateRootType.DeletedEventType
         } as? AggregateRootType.DeletedEventType
 
-        events.removeAll {
-            $0 is AggregateRootType.DeletedEventType
-        }
-
-        let aggregateRoot = try AggregateRootType(events: events)
+        //濾掉 AggregateRootType 是 AggregateRootType.DeletedEventType 的 Event
+        let aggregateRoot = try AggregateRootType(events: events.filter{ !($0 is AggregateRootType.DeletedEventType) })
 
         if let deletedEvent {
             try aggregateRoot?.apply(event: deletedEvent)
         }
         
-        if let latestRevision = fetchEvents?.latestRevision{
-            aggregateRoot?.metadata.version = UInt(latestRevision)
-        }
-        
+        aggregateRoot?.metadata.version = UInt(fetchEventsResult.latestRevision)
+
         try aggregateRoot?.clearAllDomainEvents()
 
         return aggregateRoot
