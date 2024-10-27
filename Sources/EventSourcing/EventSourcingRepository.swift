@@ -14,7 +14,7 @@ extension EventSourcingRepository {
     
     public func find(byId id: AggregateRootType.ID, hiddingDeleted: Bool) async throws -> AggregateRootType? {
         let fetchEvents = try await coordinator.fetchEvents(byId: id)
-        guard var events = fetchEvents.events else {
+        guard var events = fetchEvents?.events else {
             return nil
         }
 
@@ -36,7 +36,10 @@ extension EventSourcingRepository {
             try aggregateRoot?.apply(event: deletedEvent)
         }
         
-        aggregateRoot?.metadata.version = fetchEvents.latestRevision
+        if let latestRevision = fetchEvents?.latestRevision{
+            aggregateRoot?.metadata.version = UInt(latestRevision)
+        }
+        
         try aggregateRoot?.clearAllDomainEvents()
 
         return aggregateRoot
