@@ -49,7 +49,8 @@ public class KurrentStorageCoordinator<ProjectableType: Projectable>: EventStora
                 $0.append((event: event, revision: readEvent.recordedEvent.revision))
             }
             
-            let sortedEventWrappers = eventWrappers.sorted(using: KeyPathComparator(\.revision, order: .reverse))
+            
+            let sortedEventWrappers = eventWrappers.sorted { $0.revision > $1.revision }
             guard let latestRevision = sortedEventWrappers.first?.revision else {
                 return nil
             }
