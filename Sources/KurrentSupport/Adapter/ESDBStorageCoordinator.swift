@@ -2,6 +2,7 @@ import DDDCore
 import EventSourcing
 import EventStoreDB
 import Foundation
+import Logging
 
 public class KurrentStorageCoordinator<ProjectableType: Projectable>: EventStorageCoordinator {
     let eventMapper: any EventTypeMapper
@@ -31,6 +32,7 @@ public class KurrentStorageCoordinator<ProjectableType: Projectable>: EventStora
     }
 
     public func fetchEvents(byId id: ProjectableType.ID) async throws -> (events: [any DomainEvent], latestRevision: UInt64)? {
+        let logger = Logger(label: "KurrentStorageCoordinator")
         let streamName = ProjectableType.getStreamName(id: id)
         do{
             let responses = try client.readStream(to: .init(name: streamName), cursor: .start) { options in
@@ -58,10 +60,11 @@ public class KurrentStorageCoordinator<ProjectableType: Projectable>: EventStora
             let events = sortedEventWrappers.map(\.event)
             return (events: events, latestRevision: latestRevision)
             
-        }catch ClientError.streamNotFound(let message){
-            print("KurrentError streamNotFound: \(message)")
+        }catch EventStoreError.resourceNotFound(let reason){
+            logger.warning("Skip an error happened in esdb, with reason: \(reason)")
             return nil
-        }catch {
+        }catch{
+            logger.error("The error happened when fetching events: \(error)")
             throw error
         }
     }
