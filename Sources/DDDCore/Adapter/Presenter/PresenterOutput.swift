@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol PresenterOutput: Sendable, Codable {
+public protocol PresenterOutput {
     associatedtype ReadModelType: ReadModel
 
     var readModel: ReadModelType { get }
