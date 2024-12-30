@@ -16,7 +16,9 @@ public class KurrentStorageCoordinator<ProjectableType: Projectable>: EventStora
     public func append(events: [any DDDCore.DomainEvent], byId id: ProjectableType.ID, version: UInt?) async throws -> UInt? {
         let streamName = ProjectableType.getStreamName(id: id)
         let events = try events.map {
-            try EventData(id: $0.id, eventType: $0.eventType, payload: $0)
+            let encoder = JSONEncoder()
+            let customMetadata = try encoder.encode(CustomMetadata(className: "\(type(of: $0))"))
+            return try EventData(id: $0.id, eventType: $0.eventType, payload: $0, customMetadata: customMetadata)
         }
 
         let response = try await client.appendStream(to: .init(name: streamName), events: events) { options in
