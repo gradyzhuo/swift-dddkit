@@ -1,4 +1,4 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 6.0
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "DDDKit",
     platforms: [
-        .macOS(.v13),
+        .macOS(.v15),
         .iOS(.v16),
     ],
     products: [
@@ -21,7 +21,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/gradyzhuo/EventStoreDB-Swift.git", from: "0.2.0"),
+        .package(url: "https://github.com/gradyzhuo/EventStoreDB-Swift.git", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-log.git", from: "1.5.4")
     ],
     targets: [
@@ -49,7 +49,7 @@ let package = Package(
             dependencies: [
                 "DDDCore",
                 "EventSourcing",
-                .product(name: "EventStoreDB", package: "eventstoredb-swift"),
+                .product(name: "EventStoreDB", package: "eventstoredb-swift")
             ]
         ),
         .target(
@@ -69,5 +69,8 @@ let package = Package(
             name: "DDDCoreTests",
             dependencies: ["DDDKit", "TestUtility"]
         ),
+    ],
+    swiftLanguageModes: [
+        .v5
     ]
 )

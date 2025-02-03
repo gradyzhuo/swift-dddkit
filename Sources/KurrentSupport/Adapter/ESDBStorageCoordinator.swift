@@ -28,7 +28,7 @@ public class KurrentStorageCoordinator<ProjectableType: Projectable>: EventStora
             return options.revision(expected: .revision(UInt64(version)))
         }
 
-        return response.current.revision.flatMap {
+        return response.currentRevision.flatMap {
             .init($0)
         }
     }
@@ -37,7 +37,7 @@ public class KurrentStorageCoordinator<ProjectableType: Projectable>: EventStora
         let logger = Logger(label: "KurrentStorageCoordinator")
         let streamName = ProjectableType.getStreamName(id: id)
         do{
-            let responses = try client.readStream(to: .init(name: streamName), cursor: .start) { options in
+            let responses = try await client.readStream(to: .init(name: streamName), cursor: .start) { options in
                 options.set(resolveLinks: true)
             }
 
