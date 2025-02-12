@@ -32,7 +32,7 @@ enum PluginError: Error {
                 "--access-level", "internal",
                 "--output", "\(generatedEventsSource.path())",
                 "\(inputSource.url.path())"
-            ], environment: [:], inputFiles: [
+            ], inputFiles: [
                 inputSource.url
             ], outputFiles: [
                 generatedEventsSource
@@ -42,7 +42,7 @@ enum PluginError: Error {
                 "--access-level", "internal",
                 "--output", "\(generatedEventMapperSource.path())",
                 "\(inputSource.url.path())"
-            ], environment: [:], inputFiles: [
+            ], inputFiles: [
                 inputSource.url
             ], outputFiles: [
                 generatedEventMapperSource

@@ -42,7 +42,7 @@ package struct EventMapperGenerator {
         return switch eventData.mappingClassName {
 """)
         
-        for (eventName, definition) in definitions {
+        for (eventName, _) in definitions {
             lines.append("""
         case "\\(\(eventName).self)":
             try eventData.decode(to: \(eventName).self)

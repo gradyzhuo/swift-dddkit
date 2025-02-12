@@ -6,9 +6,9 @@
 //
 
 package struct PropertyGenerator {
-    let definition: EventDefinition.PropertyDefinition
+    let definition: PropertyDefinition
     
-    init(definition: EventDefinition.PropertyDefinition) {
+    init(definition: PropertyDefinition) {
         self.definition = definition
     }
     
@@ -19,7 +19,7 @@ package struct PropertyGenerator {
         
         columns.append("let")
         
-        columns.append("\(definition.name): \(definition.type)")
+        columns.append("\(definition.name): \(definition.type.name)")
         return columns.joined(separator: " ")
     }
 }

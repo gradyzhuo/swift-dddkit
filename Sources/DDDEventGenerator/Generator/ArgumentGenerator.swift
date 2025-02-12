@@ -6,16 +6,16 @@
 //
 
 package struct ArgumentGenerator {
-    let definition: EventDefinition.PropertyDefinition
+    let definition: PropertyDefinition
     
-    init(definition: EventDefinition.PropertyDefinition) {
+    init(definition: PropertyDefinition) {
         self.definition = definition
     }
     
     func render() -> String {
         var columns: [String] = [ ]
         
-        columns.append("\(definition.name): \(definition.type)")
+        columns.append("\(definition.name): \(definition.type.name)")
         if let defaultValue = definition.default {
             columns.append(" = \(defaultValue)")
         }

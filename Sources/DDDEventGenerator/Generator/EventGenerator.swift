@@ -19,7 +19,7 @@ package struct EventGenerator {
         let yamlDecoder = YAMLDecoder()
         let definitions = try yamlDecoder.decode([String: EventDefinition].self, from: yamlData)
         self.init(definitions: definitions)
-    }
+    } 
     
     package init(yamlFilePath: String) throws {
         let url = URL(fileURLWithPath: yamlFilePath)
