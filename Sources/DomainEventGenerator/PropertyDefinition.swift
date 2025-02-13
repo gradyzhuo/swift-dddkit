@@ -35,6 +35,7 @@ extension PropertyDefinition{
         case double
         case uuid
         case date
+        case bool
         case custom(type: String)
         
         var name: String {
@@ -47,6 +48,8 @@ extension PropertyDefinition{
                 "\(Float.self)"
             case .double:
                 "\(Double.self)"
+            case .bool:
+                "\(Bool.self)"
             case .uuid:
                 "\(UUID.self)"
             case .date:
@@ -68,6 +71,8 @@ extension PropertyDefinition{
                 self = .float
             case "\(Self.double)", Self.double.name:
                 self = .double
+            case "\(Self.bool)", Self.bool.name:
+                self = .bool
             case "\(Self.uuid)", Self.uuid.name:
                 self = .uuid
             default:
