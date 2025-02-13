@@ -10,6 +10,12 @@ import Yams
 package struct EventGenerator {
     let definitions: [String: EventDefinition]
     
+    package var eventNames: [String] {
+        get {
+            definitions.keys.map{ $0 }
+        }
+    }
+    
     package init(definitions: [String: EventDefinition]){
         self.definitions = definitions
     }

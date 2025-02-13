@@ -20,8 +20,8 @@ let package = Package(
             targets: ["TestUtility"]
         ),
         .library(
-            name: "DDDEventGenerator",
-            targets: ["DDDEventGenerator"]
+            name: "DomainEventGenerator",
+            targets: ["DomainEventGenerator"]
         ),
        .plugin(name: "DomainEventGeneratorPlugin", targets: [
            "DomainEventGeneratorPlugin"
@@ -82,7 +82,7 @@ let package = Package(
             name: "DDDCoreTests",
             dependencies: ["DDDKit", "TestUtility"]
         ),
-        .target(name: "DDDEventGenerator",
+        .target(name: "DomainEventGenerator",
                 dependencies: [
                     "DDDKit",
                     .product(name: "Yams", package: "yams")
@@ -90,7 +90,7 @@ let package = Package(
         
         .executableTarget(name: "generate",
                           dependencies: [
-                            "DDDEventGenerator",
+                            "DomainEventGenerator",
                             .product(name: "ArgumentParser", package: "swift-argument-parser")
                           ]),
         .plugin(

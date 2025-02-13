@@ -9,22 +9,31 @@ import Foundation
 import Yams
 
 package struct ProjectionModelGenerator {
-    let definitions: [String: EventProjectionDefinition]
+    package let definitions: [String: EventProjectionDefinition]
     
-    package init(definitions: [String: EventProjectionDefinition]){
-        self.definitions = definitions
+    package init(definitions: [String: EventProjectionDefinition], aggregateEventNames: [String]){
+
+        let definitionTuples = definitions.map{
+            var definition = $0.value
+            if $0.value.model == .aggregateRoot {
+                definition.events = aggregateEventNames
+            }
+            return ($0.key, definition)
+        }
+        
+        self.definitions = Dictionary(uniqueKeysWithValues: definitionTuples)
     }
     
-    package init(yamlFileURL: URL) throws {
+    package init(yamlFileURL: URL, aggregateEventNames: [String]) throws {
         let yamlData = try Data(contentsOf: yamlFileURL)
         let yamlDecoder = YAMLDecoder()
         let definitions = try yamlDecoder.decode([String: EventProjectionDefinition].self, from: yamlData)
-        self.init(definitions: definitions)
+        self.init(definitions: definitions, aggregateEventNames: aggregateEventNames)
     }
     
-    package init(yamlFilePath: String) throws {
+    package init(yamlFilePath: String, aggregateEventNames: [String]) throws {
         let url = URL(fileURLWithPath: yamlFilePath)
-        try self.init(yamlFileURL: url)
+        try self.init(yamlFileURL: url, aggregateEventNames: aggregateEventNames)
     }
     
     package func render(accessLevel: AccessLevel) -> [String] {

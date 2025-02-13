@@ -9,6 +9,7 @@ import Foundation
 import PackagePlugin
 
 enum PluginError: Error {
+    case eventDefinitionFileNotFound
     case projectionModelDefinitionFileNotFound
     case configFileNotFound
 }
@@ -24,22 +25,41 @@ enum PluginError: Error {
             throw PluginError.projectionModelDefinitionFileNotFound
         }
         
+        guard let eventSource = (sourceFiles.first{ $0.url.lastPathComponent == "event.yaml" }) else {
+            throw PluginError.eventDefinitionFileNotFound
+        }
+        
         guard let configSource = (sourceFiles.first{ $0.url.lastPathComponent == "event-generator-config.yaml" }) else {
             throw PluginError.configFileNotFound
         }
         
         let generatedProjectionHelperSource = pluginWorkDirectory.appending(path: "generated-projection-model.swift")
-    
+        let generatedEventMapperSource = pluginWorkDirectory.appending(path: "generated-event-mapper.swift")
+        
         return [
             try .buildCommand(displayName: "Event Generating...\(projectionModelSource.url.path())", executable: tool("generate"), arguments: [
                 "projection-model",
-                "--configuration", "\(configSource.url.path())",
-                "--output", "\(generatedProjectionHelperSource.path())",
+                "--configuration", configSource.url.path(),
+                "--output", generatedProjectionHelperSource.path(),
+                "--events", eventSource.url.path(),
                 "\(projectionModelSource.url.path())"
             ], inputFiles: [
+                eventSource.url,
                 projectionModelSource.url
             ], outputFiles: [
                 generatedProjectionHelperSource
+            ]),
+            try .buildCommand(displayName: "EventMapper Generating...\(eventSource.url.path())", executable: tool("generate"), arguments: [
+                "event-mapper",
+                "--configuration", configSource.url.path(),
+                "--output", generatedEventMapperSource.path(),
+                eventSource.url.path(),
+                projectionModelSource.url.path()
+            ], inputFiles: [
+                eventSource.url,
+                projectionModelSource.url
+            ], outputFiles: [
+                generatedEventMapperSource
             ])
         ]
     }

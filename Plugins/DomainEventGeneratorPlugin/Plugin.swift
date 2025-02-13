@@ -29,7 +29,7 @@ enum PluginError: Error {
         }
         
         let generatedEventsSource = pluginWorkDirectory.appending(path: "generated-event.swift")
-        let generatedEventMapperSource = pluginWorkDirectory.appending(path: "generated-event-mapper.swift")
+        
     
         return [
             try .buildCommand(displayName: "Event Generating...\(inputSource.url.path())", executable: tool("generate"), arguments: [
@@ -41,16 +41,6 @@ enum PluginError: Error {
                 inputSource.url
             ], outputFiles: [
                 generatedEventsSource
-            ]),
-            try .buildCommand(displayName: "EventMapper Generating...\(inputSource.url.path())", executable: tool("generate"), arguments: [
-                "event-mapper",
-                "--configuration", "\(configSource.url.path())",
-                "--output", "\(generatedEventMapperSource.path())",
-                "\(inputSource.url.path())"
-            ], inputFiles: [
-                inputSource.url
-            ], outputFiles: [
-                generatedEventMapperSource
             ])
         ]
     }

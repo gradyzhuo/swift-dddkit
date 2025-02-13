@@ -9,29 +9,19 @@ import Foundation
 import Yams
 
 package struct EventMapperGenerator {
-    let definitions: [String: EventDefinition]
+    let modelName: String
+    let eventNames: [String]
     
-    package init(definitions: [String: EventDefinition]) {
-        self.definitions = definitions
-    }
-    
-    package init(yamlFileURL: URL) throws {
-        let yamlData = try Data(contentsOf: yamlFileURL)
-        let yamlDecoder = YAMLDecoder()
-        let definitions = try yamlDecoder.decode([String: EventDefinition].self, from: yamlData)
-        self.init(definitions: definitions)
-    }
-    
-    package init(yamlFilePath: String) throws {
-        let url = URL(fileURLWithPath: yamlFilePath)
-        try self.init(yamlFileURL: url)
+    package init(modelName: String, eventNames: [String]) {
+        self.modelName = modelName
+        self.eventNames = eventNames
     }
     
     package func render(accessLevel: AccessLevel)-> [String] {
         var lines: [String] = []
         
         lines.append("""
-\(accessLevel.rawValue) struct EventMapper: EventTypeMapper {
+\(accessLevel.rawValue) struct \(modelName)EventMapper: EventTypeMapper {
 
     \(accessLevel.rawValue) init(){}
 
@@ -42,7 +32,7 @@ package struct EventMapperGenerator {
         return switch eventData.mappingClassName {
 """)
         
-        for (eventName, _) in definitions {
+        for eventName in eventNames {
             lines.append("""
         case "\\(\(eventName).self)":
             try eventData.decode(to: \(eventName).self)

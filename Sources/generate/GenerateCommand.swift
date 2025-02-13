@@ -7,7 +7,7 @@
 
 
 import Foundation
-import DDDEventGenerator
+import DomainEventGenerator
 import ArgumentParser
 import Yams
 
@@ -99,7 +99,10 @@ extension GenerateCommand {
     struct EventMapper: ParsableCommand {
         
         @Argument(help: "The path of the event file.", completion: .file(extensions: ["yaml", "yam"]))
-        var input: String
+        var eventDefinitionPath: String
+        
+        @Argument(help: "The path of the projection-model file.", completion: .file(extensions: ["yaml", "yam"]))
+        var projectionModelDefinitionPath: String
         
         @Option(completion: .file(extensions: ["yaml", "yam"]), transform: {
             let url = URL(fileURLWithPath: $0)
@@ -119,9 +122,8 @@ extension GenerateCommand {
         var output: String? = nil
         
         func run() throws {
-            
-            let eventMapperGenerator = try EventMapperGenerator(yamlFilePath: input)
-            
+            let eventGenerator = try EventGenerator(yamlFilePath: eventDefinitionPath)
+            let projectionModelGenerator = try ProjectionModelGenerator(yamlFilePath: projectionModelDefinitionPath, aggregateEventNames: eventGenerator.eventNames)
             guard let outputPath = output else {
                 throw Errors.outputPathMissing
             }
@@ -137,7 +139,13 @@ extension GenerateCommand {
             lines.append("import KurrentSupport")
             lines.append("import KurrentDB")
             lines.append("")
-            lines.append(contentsOf: eventMapperGenerator.render(accessLevel: accessModifier))
+            
+            for (modelName, projectionModelDefinition) in projectionModelGenerator.definitions {
+                
+                let eventMapperGenerator = EventMapperGenerator(modelName: modelName, eventNames: projectionModelDefinition.events)
+                lines.append(contentsOf: eventMapperGenerator.render(accessLevel: accessModifier))
+                lines.append("")
+            }
             
             let content = lines.joined(separator: "\n")
             try content.write(toFile: outputPath, atomically: true, encoding: .utf8)
@@ -147,8 +155,11 @@ extension GenerateCommand {
     
     struct ProjectionModel: ParsableCommand {
         
-        @Argument(help: "The path of the event file.", completion: .file(extensions: ["yaml", "yam"]))
-        var input: String
+        @Option(name: .customLong("events"),completion: .file(extensions: ["yaml", "yam"]))
+        var eventDefinitionPath: String
+        
+        @Argument(help: "The path of the projection-model file.", completion: .file(extensions: ["yaml", "yam"]))
+        var projectionModelDefinitionPath: String
         
         @Option(completion: .file(extensions: ["yaml", "yam"]), transform: {
             let url = URL(fileURLWithPath: $0)
@@ -169,7 +180,9 @@ extension GenerateCommand {
         
         func run() throws {
             
-            let generator = try ProjectionModelGenerator(yamlFilePath: input)
+            let eventGenerator = try EventGenerator(yamlFilePath: eventDefinitionPath)
+            
+            let generator = try ProjectionModelGenerator(yamlFilePath: projectionModelDefinitionPath, aggregateEventNames: eventGenerator.eventNames)
             
             guard let outputPath = output else {
                 throw Errors.outputPathMissing
