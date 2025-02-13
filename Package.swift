@@ -23,8 +23,12 @@ let package = Package(
             name: "DDDEventGenerator",
             targets: ["DDDEventGenerator"]
         ),
-       .plugin(name: "DDDEventGeneratorPlugin", targets: [
-           "DDDEventGeneratorPlugin"
+       .plugin(name: "DomainEventGeneratorPlugin", targets: [
+           "DomainEventGeneratorPlugin"
+           
+       ]),
+       .plugin(name: "ProjectionModelGeneratorPlugin", targets: [
+           "ProjectionModelGeneratorPlugin"
        ])
     ],
     dependencies: [
@@ -90,11 +94,18 @@ let package = Package(
                             .product(name: "ArgumentParser", package: "swift-argument-parser")
                           ]),
         .plugin(
-          name: "DDDEventGeneratorPlugin",
+          name: "DomainEventGeneratorPlugin",
           capability: .buildTool(),
           dependencies: [
             "generate"
           ]),
+        .plugin(
+          name: "ProjectionModelGeneratorPlugin",
+          capability: .buildTool(),
+          dependencies: [
+            "generate"
+          ]),
+        
     ],
     swiftLanguageModes: [
         .v5

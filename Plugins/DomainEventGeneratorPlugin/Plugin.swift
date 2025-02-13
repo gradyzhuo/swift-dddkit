@@ -9,11 +9,11 @@ import Foundation
 import PackagePlugin
 
 enum PluginError: Error {
-    case inputNotFound
-    case configNotFound
+    case eventDefinitionFileNotFound
+    case configFileNotFound
 }
 
-@main struct DDDEventGeneratorPlugin {
+@main struct DomainEventGeneratorPlugin {
     func createBuildCommands(
         pluginWorkDirectory: URL,
         tool: (String) throws -> URL,
@@ -21,11 +21,11 @@ enum PluginError: Error {
         targetName: String
     ) throws -> [Command] {
         guard let inputSource = (sourceFiles.first{ $0.url.lastPathComponent == "event.yaml" }) else {
-            throw PluginError.inputNotFound
+            throw PluginError.eventDefinitionFileNotFound
         }
         
         guard let configSource = (sourceFiles.first{ $0.url.lastPathComponent == "event-generator-config.yaml" }) else {
-            throw PluginError.configNotFound
+            throw PluginError.configFileNotFound
         }
         
         let generatedEventsSource = pluginWorkDirectory.appending(path: "generated-event.swift")
@@ -56,7 +56,7 @@ enum PluginError: Error {
     }
 }
 
-extension DDDEventGeneratorPlugin: BuildToolPlugin {
+extension DomainEventGeneratorPlugin: BuildToolPlugin {
     func createBuildCommands(context: PluginContext, target: Target) async throws -> [Command] {
         guard let swiftTarget = target as? SwiftSourceModuleTarget else {
             return []
@@ -77,7 +77,7 @@ extension DDDEventGeneratorPlugin: BuildToolPlugin {
 #if canImport(XcodeProjectPlugin)
 import XcodeProjectPlugin
 
-extension DDDEventGeneratorPlugin: XcodeBuildToolPlugin {
+extension DomainEventGeneratorPlugin: XcodeBuildToolPlugin {
     func createBuildCommands(context: XcodePluginContext, target: XcodeTarget) throws -> [Command] {
         try createBuildCommands(
             pluginWorkDirectory: context.pluginWorkDirectoryURL,

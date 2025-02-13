@@ -14,7 +14,7 @@ package struct EventStructureGenerator {
     init(eventName: String, definition: EventDefinition) {
         self.eventName = eventName
         self.definition = definition
-        self.superProtocols = ["\((any DomainEvent).self)"]
+        self.superProtocols = [definition.kind.protocol]
     }
     
     func render(accessLevel: AccessLevel, indentationCount: Int = 4)-> [String] {
