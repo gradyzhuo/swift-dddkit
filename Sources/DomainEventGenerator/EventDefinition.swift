@@ -25,16 +25,26 @@ package struct EventDefinition: Codable {
         }catch {
             let convenienceProperties = try container.decodeIfPresent([String:String].self, forKey: .properties)
             self.properties = convenienceProperties.map{
-                $0.map{
+                let infos = $0.map{
                     let propertyName = $0.key
                     let propertyInfos = $0.value
                                             .trimmingCharacters(in: .whitespaces)
                                             .split(separator: ",")
                     let propertyType = String(propertyInfos[0])
-                    let index = String(propertyInfos[1])
-                    
-                    return PropertyDefinition.init(name: propertyName, type: .init(rawValue: propertyType))
+                    let index = Int(propertyInfos[1])
+                    return (name:propertyName, type: propertyType, index: index)
                 }
+                let sortedInfos = infos.sorted{
+                    guard let lhsIndex = $0.index, let rhsIndex = $1.index else {
+                        return false
+                    }
+                    return lhsIndex < rhsIndex
+                }
+                
+                return sortedInfos.map{
+                    .init(name: $0.name, type: .init(rawValue: $0.type))
+                }
+                
             }
             
             
