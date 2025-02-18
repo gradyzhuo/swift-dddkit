@@ -61,7 +61,7 @@ package struct ProjectionModelGenerator {
             //whens
             lines.append("""
 extension \(protocolName) where Self: \(definition.model.protocol){
-    \(accessLevel) func when(happened event: some DomainEvent) throws{
+    func when(happened event: some DomainEvent) throws{
         switch event {
 """)
             
