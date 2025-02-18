@@ -41,7 +41,7 @@ package struct ProjectionModelGenerator {
         
         for (modelName, definition) in definitions{
             let protocolName = "\(modelName.capitalized)\(definition.model.protocol)Protocol"
-            lines.append("\(accessLevel.rawValue) protocol \(protocolName) {")
+            lines.append("internal protocol \(protocolName) {")
             for eventName in definition.events{
                 lines.append("   func when(event: \(eventName)) throws")
             }
