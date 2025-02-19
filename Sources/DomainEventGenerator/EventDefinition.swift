@@ -5,56 +5,83 @@
 //  Created by 卓俊諺 on 2025/2/11.
 //
 import Foundation
-import DDDCore
 
-package struct EventDefinition: Codable {
-    var migration: MigrationDefinition?
-    var kind: EventKind = .domainEvent
-    var aggregateRootId: AggregateRootIdDefinition
-    var properties: [PropertyDefinition]?
-    var deprecated: Bool?
+package struct EventDefinitionCollection: Codable {
+    let events: [Event]
     
-    package init(from decoder: any Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.migration = try container.decodeIfPresent(MigrationDefinition.self, forKey: .migration)
-        let kind = try container.decodeIfPresent(EventDefinition.EventKind.self, forKey: .kind)
-        self.kind = kind ?? .domainEvent
-        self.aggregateRootId = try container.decode(EventDefinition.AggregateRootIdDefinition.self, forKey: .aggregateRootId)
-        do{
-            self.properties = try container.decodeIfPresent([PropertyDefinition].self, forKey: .properties)
-        }catch {
-            let convenienceProperties = try container.decodeIfPresent([String:String].self, forKey: .properties)
-            self.properties = convenienceProperties.map{
-                let infos = $0.map{
-                    let propertyName = $0.key
-                    let propertyInfos = $0.value
-                                            .split(separator: ",")
-                    let propertyType = String(propertyInfos[0].trimmingCharacters(in: .whitespaces))
-                    let index = Int(propertyInfos[1].trimmingCharacters(in: .whitespaces))
-                    return (name:propertyName, type: propertyType, index: index)
-                }
-                let sortedInfos = infos.sorted{
-                    guard let lhsIndex = $0.index, let rhsIndex = $1.index else {
-                        return false
-                    }
-                    return lhsIndex < rhsIndex
-                }
-                
-                return sortedInfos.map{
-                    .init(name: $0.name, type: .init(rawValue: $0.type))
-                }
-                
-            }
-            
-            
+    package init(from decoder: Decoder) throws {
+        let dictionary = try [String: Event.Definition](from: decoder)
+        self.events = dictionary.map {
+            .init(name: $0.key, definition: $0.value)
         }
+    }
         
-        self.deprecated = try container.decodeIfPresent(Bool.self, forKey: .deprecated)
+    package func encode(to encoder: Encoder) throws {
+        let dictionary = Dictionary(uniqueKeysWithValues: events.map {
+            ($0.name, $0.definition)
+        })
+        try dictionary.encode(to: encoder)
     }
 }
 
-extension EventDefinition{
-    enum EventKind: String, Codable{
+package struct Event {
+    package var name: String
+    package let definition: Definition
+    
+    init(name: String, definition: Definition) {
+        self.name = name
+        self.definition = definition
+    }
+}
+
+extension Event {
+    package struct Definition: Codable {
+        package var migration: MigrationDefinition?
+        package var kind: EventKind = .domainEvent
+        package var aggregateRootId: AggregateRootIdDefinition
+        package var properties: [PropertyDefinition]?
+        package var deprecated: Bool?
+        
+        package init(from decoder: any Decoder) throws {
+        
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            self.migration = try container.decodeIfPresent(MigrationDefinition.self, forKey: .migration)
+            let kind = try container.decodeIfPresent(EventKind.self, forKey: .kind)
+            self.kind = kind ?? .domainEvent
+            self.aggregateRootId = try container.decode(AggregateRootIdDefinition.self, forKey: .aggregateRootId)
+            do{
+                self.properties = try container.decodeIfPresent([PropertyDefinition].self, forKey: .properties)
+            }catch {
+                let convenienceProperties = try container.decodeIfPresent([String:String].self, forKey: .properties)
+                self.properties = convenienceProperties.map{
+                    let infos = $0.map{
+                        let propertyName = $0.key
+                        let propertyInfos = $0.value
+                                                .split(separator: ",")
+                        let propertyType = String(propertyInfos[0].trimmingCharacters(in: .whitespaces))
+                        let index = Int(propertyInfos[1].trimmingCharacters(in: .whitespaces))
+                        return (name:propertyName, type: propertyType, index: index)
+                    }
+                    let sortedInfos = infos.sorted{
+                        guard let lhsIndex = $0.index, let rhsIndex = $1.index else {
+                            return false
+                        }
+                        return lhsIndex < rhsIndex
+                    }
+                    
+                    return sortedInfos.map{
+                        .init(name: $0.name, type: .init(rawValue: $0.type))
+                    }
+                }
+            }
+            
+            self.deprecated = try container.decodeIfPresent(Bool.self, forKey: .deprecated)
+        }
+    }
+}
+
+extension Event{
+    package enum EventKind: String, Codable{
         case createdEvent
         case domainEvent
         case deletedEvent
@@ -62,17 +89,17 @@ extension EventDefinition{
         var `protocol`: String{
             switch self {
             case .createdEvent:
-                "\((any DomainEvent).self)"
+                "DomainEvent"
             case .deletedEvent:
-                "\((any DeletedEvent).self)"
+                "DeletedEvent"
             case .domainEvent:
-                "\((any DomainEvent).self)"
+                "DomainEvent"
             }
         }
     }
 }
 
-extension EventDefinition {
+extension Event {
     package struct AggregateRootIdDefinition: Codable {
         let alias: String
     }

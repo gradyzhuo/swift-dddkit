@@ -84,7 +84,6 @@ let package = Package(
         ),
         .target(name: "DomainEventGenerator",
                 dependencies: [
-                    "DDDKit",
                     .product(name: "Yams", package: "yams")
                 ]),
         

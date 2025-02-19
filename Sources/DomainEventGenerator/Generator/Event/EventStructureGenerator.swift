@@ -4,17 +4,14 @@
 //
 //  Created by 卓俊諺 on 2025/2/11.
 //
-import DDDCore
 
 package struct EventStructureGenerator {
     var superProtocols: [String]
-    let eventName: String
-    let definition: EventDefinition
+    let event: Event
     
-    init(eventName: String, definition: EventDefinition) {
-        self.eventName = eventName
-        self.definition = definition
-        self.superProtocols = [definition.kind.protocol]
+    init(event: Event) {
+        self.event = event
+        self.superProtocols = [event.definition.kind.protocol]
     }
     
     func render(accessLevel: AccessLevel, indentationCount: Int = 4)-> [String] {
@@ -22,20 +19,20 @@ package struct EventStructureGenerator {
         
         let properties: [PropertyDefinition] = [
             .init(name: "id", type: .uuid, default: ".init()"),
-            .init(name: definition.aggregateRootId.alias, type: .string)
-        ] + (definition.properties ?? []) + [
+            .init(name: event.definition.aggregateRootId.alias, type: .string)
+        ] + (event.definition.properties ?? []) + [
             .init(name: "occurred", type: .date, default: ".now")
         ]
         
         var lines: [String] = []
         let superProtocolsString = superProtocols.joined(separator: ", ")
-        if definition.deprecated != nil {
+        if event.definition.deprecated != nil {
             lines.append("""
-@available(*, deprecated, message: "The struct type of event \(eventName) is deprecated.")
+@available(*, deprecated, message: "The struct type of event \(event.name) is deprecated.")
 """)
         }
         
-        lines.append("\(accessLevel.rawValue) struct \(eventName): \(superProtocolsString) {")
+        lines.append("\(accessLevel.rawValue) struct \(event.name): \(superProtocolsString) {")
         properties.forEach {
             let generator = PropertyGenerator(definition: $0)
             lines.append("\(indentation)\(generator.render(accessLevel: accessLevel))")

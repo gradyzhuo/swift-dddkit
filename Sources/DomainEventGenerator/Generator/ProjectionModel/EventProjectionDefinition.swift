@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import DDDCore
 
 package struct EventProjectionDefinition: Codable {
     package var idType: PropertyDefinition.PropertyType
@@ -14,6 +13,15 @@ package struct EventProjectionDefinition: Codable {
     package let createdEvent: String
     package let deletedEvent: String?
     package var events: [String]
+    
+    
+    package init(idType: PropertyDefinition.PropertyType, model: ModelKind, createdEvent: String, deletedEvent: String?, events: [String]) {
+        self.idType = idType
+        self.model = model
+        self.createdEvent = createdEvent
+        self.deletedEvent = deletedEvent
+        self.events = events
+    }
     
     package init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -34,9 +42,9 @@ extension EventProjectionDefinition{
         var `protocol`: String {
             switch self {
             case .aggregateRoot:
-                "\((any AggregateRoot).self)"
+                "AggregateRoot"
             case .readModel:
-                "\((any ReadModel).self)"
+                "ReadModel"
             }
         }
     }

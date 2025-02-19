@@ -12,7 +12,7 @@ package struct ProjectionModelGenerator {
     package let definitions: [String: EventProjectionDefinition]
     
     package init(definitions: [String: EventProjectionDefinition], aggregateEventNames: [String]){
-
+        
         let definitionTuples = definitions.map{
             var definition = $0.value
             if $0.value.model == .aggregateRoot {

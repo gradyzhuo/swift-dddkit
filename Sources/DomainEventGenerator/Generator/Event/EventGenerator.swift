@@ -7,25 +7,56 @@
 import Foundation
 import Yams
 
+enum GenerationError: Error {
+    case noCreatedEvent
+}
+
 package struct EventGenerator {
-    let definitions: [String: EventDefinition]
+    package let events: [Event]
     
     package var eventNames: [String] {
         get {
-            definitions.keys.map{ $0 }
+            events.map{ $0.name }
         }
     }
     
-    package init(definitions: [String: EventDefinition]){
-        self.definitions = definitions
+//    package var createdEventName: String {
+//        get throws {
+//            let filteredVaildCreatedEventDefinition: [(String, EventDefinition)] = definitions.filter{
+//                let deprecated = $0.value.deprecated ?? false
+//                return !deprecated && $0.value.kind == .createdEvent
+//            }
+//            guard let createdEventTuple = filteredVaildCreatedEventDefinition.first else {
+//                throw GenerationError.noCreatedEvent
+//            }
+//            return createdEventTuple.0
+//        }
+//    }
+//    
+//    package var deletedEventName: String? {
+//        get throws {
+//            let filteredVaildCreatedEventDefinition: [(String, EventDefinition)] = definitions.filter{
+//                let deprecated = $0.value.deprecated ?? false
+//                return !deprecated && $0.value.kind == .deletedEvent
+//            }
+//            return filteredVaildCreatedEventDefinition.first?.0
+//        }
+//    }
+//    
+    package init(events: [Event]){
+        self.events = events
+    }
+    
+    package init(events collection: EventDefinitionCollection){
+        self.events = collection.events
     }
     
     package init(yamlFileURL: URL) throws {
         let yamlData = try Data(contentsOf: yamlFileURL)
         let yamlDecoder = YAMLDecoder()
-        let definitions = try yamlDecoder.decode([String: EventDefinition].self, from: yamlData)
-        self.init(definitions: definitions)
-    } 
+        let collection = try yamlDecoder.decode(EventDefinitionCollection.self, from: yamlData)
+        self.init(events: collection.events)
+    }
     
     package init(yamlFilePath: String) throws {
         let url = URL(fileURLWithPath: yamlFilePath)
@@ -35,18 +66,18 @@ package struct EventGenerator {
     package func render(accessLevel: AccessLevel) -> [String] {
         var lines: [String] = []
 
-        for (eventName, definition) in definitions {
-            let eventGenerator = EventStructureGenerator(eventName: eventName, definition: definition)
+        for event in events {
+            let eventGenerator = EventStructureGenerator(event: event)
             lines.append(contentsOf: eventGenerator.render(accessLevel: accessLevel))
             lines.append("")
             
             //extension
-            let extensionGenerator = EventAggregateRootIdExtensionGenerator(eventName: eventName, definition: definition)
+            let extensionGenerator = EventAggregateRootIdExtensionGenerator(event: event)
             lines.append(contentsOf: extensionGenerator.render(accessLevel: accessLevel))
             lines.append("")
             
-            if let migration = definition.migration {
-                let migrationGenerator = EventMigrationExtensionGenerator(eventName: eventName, definition: migration)
+            if let migration = event.definition.migration {
+                let migrationGenerator = EventMigrationExtensionGenerator(eventName: event.name, definition: migration)
                 lines.append(contentsOf: migrationGenerator.render(accessLevel: accessLevel))
             }
             lines.append("")

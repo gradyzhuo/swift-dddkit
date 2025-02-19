@@ -6,21 +6,19 @@
 //
 
 package struct EventAggregateRootIdExtensionGenerator {
-    let eventName: String
-    let definition: EventDefinition
+    let event: Event
     
-    init(eventName: String, definition: EventDefinition) {
-        self.eventName = eventName
-        self.definition = definition
+    init(event: Event) {
+        self.event = event
     }
     
     func render(accessLevel: AccessLevel = .internal)-> [String] {
         var lines: [String] = []
         lines.append("""
-extension \(eventName): Codable{
+extension \(event.name): Codable{
     \(accessLevel.rawValue) var aggregateRootId: String{
         get{
-            \(definition.aggregateRootId.alias)
+            \(event.definition.aggregateRootId.alias)
         }
     }
 }
