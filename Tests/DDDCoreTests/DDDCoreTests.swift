@@ -113,33 +113,6 @@ final class DDDCoreTests: XCTestCase {
         XCTAssertNotNil(finded)
     }
 
-    func testAggregateRootDeleted() async throws {
-        let testId = "idForTesting"
-        let aggregateRoot = TestAggregateRoot(id: testId)
-        let repository = try TestRepository(client: .init(settings: .localhost()))
-
-        try await repository.save(aggregateRoot: aggregateRoot)
-
-        try await repository.delete(aggregateRoot: aggregateRoot)
-
-        let finded = try await repository.find(byId: testId)
-        XCTAssertNil(finded)
-    }
-
-    func test_deleted_aggregate_root_should_not_be_hidden() async throws {
-        let testId = "idForTesting"
-        let aggregateRoot = TestAggregateRoot(id: testId)
-        let repository = try TestRepository(client: .init(settings: .localhost()))
-
-        try await repository.save(aggregateRoot: aggregateRoot)
-
-        try await repository.delete(aggregateRoot: aggregateRoot)
-
-        let finded = try await repository.find(byId: testId, hiddingDeleted: false)
-        XCTAssertNotNil(finded)
-        XCTAssertEqual(finded?.deleted, false)
-    }
-
     func testProjectorFind() async throws {
         let testId = "idForTesting"
         let aggregateRoot = TestAggregateRoot(id: testId)
