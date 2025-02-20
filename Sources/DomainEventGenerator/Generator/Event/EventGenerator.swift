@@ -19,30 +19,7 @@ package struct EventGenerator {
             events.map{ $0.name }
         }
     }
-    
-//    package var createdEventName: String {
-//        get throws {
-//            let filteredVaildCreatedEventDefinition: [(String, EventDefinition)] = definitions.filter{
-//                let deprecated = $0.value.deprecated ?? false
-//                return !deprecated && $0.value.kind == .createdEvent
-//            }
-//            guard let createdEventTuple = filteredVaildCreatedEventDefinition.first else {
-//                throw GenerationError.noCreatedEvent
-//            }
-//            return createdEventTuple.0
-//        }
-//    }
-//    
-//    package var deletedEventName: String? {
-//        get throws {
-//            let filteredVaildCreatedEventDefinition: [(String, EventDefinition)] = definitions.filter{
-//                let deprecated = $0.value.deprecated ?? false
-//                return !deprecated && $0.value.kind == .deletedEvent
-//            }
-//            return filteredVaildCreatedEventDefinition.first?.0
-//        }
-//    }
-//    
+  
     package init(events: [Event]){
         self.events = events
     }

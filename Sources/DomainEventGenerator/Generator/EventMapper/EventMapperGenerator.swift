@@ -43,12 +43,6 @@ package struct EventMapperGenerator {
         default:
             nil
 """)
-//        case "\(LetterContentEdited.self)":
-//            try eventData.decode(to: LetterContentEdited.self)
-//        case "\(PaymentItemAdded.self)":
-//            try eventData.decode(to: PaymentItemAdded.self)
-//        default:
-//            nil
         
         lines.append("""
         }
