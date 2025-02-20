@@ -50,10 +50,10 @@ package struct ProjectionModelGenerator {
             
             //created
             lines.append("extension \(protocolName) where Self: \(definition.model.protocol) {")
-            lines.append("    typealias ID = \(definition.idType.name)")
-            lines.append("    typealias CreatedEventType = \(definition.createdEvent)")
+            lines.append("    \(accessLevel.rawValue) typealias ID = \(definition.idType.name)")
+            lines.append("    \(accessLevel.rawValue) typealias CreatedEventType = \(definition.createdEvent)")
             if let deletedEvent = definition.deletedEvent{
-                lines.append("    typealias DeletedEventType = \(deletedEvent)")
+                lines.append("    \(accessLevel.rawValue) typealias DeletedEventType = \(deletedEvent)")
             }
             lines.append("}")
             lines.append("")
