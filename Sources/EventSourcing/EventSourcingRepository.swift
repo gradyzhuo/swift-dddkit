@@ -45,8 +45,8 @@ extension EventSourcingRepository {
         return aggregateRoot
     }
 
-    public func save(aggregateRoot: AggregateRootType, customMetadata: Data?) async throws {
-        let latestRevision: UInt64? = try await coordinator.append(events: aggregateRoot.events, byId: aggregateRoot.id, version: aggregateRoot.version, customMetadata: customMetadata)
+    public func save(aggregateRoot: AggregateRootType, external: [String:String]?) async throws {
+        let latestRevision: UInt64? = try await coordinator.append(events: aggregateRoot.events, byId: aggregateRoot.id, version: aggregateRoot.version, external: external)
         aggregateRoot.metadata.version = latestRevision
         try aggregateRoot.clearAllDomainEvents()
     }

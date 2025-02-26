@@ -10,11 +10,7 @@ import EventSourcing
 
 extension EventSourcingRepository {
     public func save(aggregateRoot: AggregateRootType, userId: String) async throws {
-        let customMetadata = CustomMetadata(
-            className: "\(type(of: aggregateRoot))",
-            userId: userId)
-        let encoder = JSONEncoder()
-        try await self.save(aggregateRoot: aggregateRoot, customMetadata: encoder.encode(customMetadata))
+        try await self.save(aggregateRoot: aggregateRoot, external: ["userId": userId])
     }
 }
 

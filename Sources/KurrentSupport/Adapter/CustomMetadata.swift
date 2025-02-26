@@ -1,10 +1,10 @@
 public struct CustomMetadata: Codable {
     public let className: String
-    public let userId: String?
+    public let external: [String: String]?
 
-    public init(className: String, userId: String?) {
+    public init(className: String, external: [String: String]?) {
         self.className = className
-        self.userId = userId
+        self.external = external
     }
 }
 

@@ -15,6 +15,6 @@ extension RecordedEvent {
     public var userId: String? {
         let decoder = JSONDecoder()
         let customMetadata = try? decoder.decode(CustomMetadata.self, from: self.customMetadata)
-        return customMetadata?.userId
+        return customMetadata?.external?["userId"]
     }
 }
