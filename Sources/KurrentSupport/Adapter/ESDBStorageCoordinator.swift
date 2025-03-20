@@ -56,15 +56,16 @@ public class KurrentStorageCoordinator<ProjectableType: Projectable>: EventStora
                 $0.append((event: event, revision: readEvent.recordedEvent.revision))
             }
             
-            
-            let sortedEventWrappers = eventWrappers.sorted { $0.revision > $1.revision }
-            guard let latestRevision = sortedEventWrappers.first?.revision else {
+            guard let latestRevision = eventWrappers.last?.revision else {
                 return nil
             }
             
-            let events = sortedEventWrappers.map(\.event)
-            return (events: events, latestRevision: latestRevision)
+            let events = eventWrappers.map(\.event)
+            let sortedEvents = events.sorted {
+                $0.occurred < $1.occurred
+            }
             
+            return (events: sortedEvents, latestRevision: latestRevision)
         }catch EventStoreError.resourceNotFound(let reason){
             logger.warning("Skip an error happened in esdb, with reason: \(reason)")
             return nil

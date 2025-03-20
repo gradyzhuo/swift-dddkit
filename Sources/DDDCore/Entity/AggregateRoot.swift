@@ -13,14 +13,12 @@ public protocol AggregateRoot: Projectable, Entity {
 
 extension AggregateRoot {
     public init?(events: [any DomainEvent]) throws {
-        var sortedEvents = events.sorted {
-            $0.occurred < $1.occurred
-        }
-        guard let createdEvent = sortedEvents.removeFirst() as? CreatedEventType else {
+        var events = events
+        guard let createdEvent = events.removeFirst() as? CreatedEventType else {
             return nil
         }
 
-        try self.init(first: createdEvent, other: sortedEvents)
+        try self.init(first: createdEvent, other: events)
     }
     
     public var deleted: Bool {
