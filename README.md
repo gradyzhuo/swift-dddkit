@@ -293,8 +293,8 @@ Quotation:
   
 GetQuotationReadModel:
  model: readModel
- createdEvent: QuotationCreated
  events:
+  - xxxCreated
   - xxxEdited
   - xxxEdited
 ```
