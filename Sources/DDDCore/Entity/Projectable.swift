@@ -7,7 +7,6 @@ public protocol Projectable {
     var id: ID { get }
     init?(events: [any DomainEvent]) throws
     func when(happened event: some DomainEvent) throws
-    func ensureInvariant() throws
 }
 
 extension Projectable {

@@ -5,9 +5,7 @@ public protocol ReadModel: Projectable, Codable {
 extension ReadModel {
 
     public func restore(event: some DomainEvent) throws {
-        try ensureInvariant()
         try when(happened: event)
-        try ensureInvariant()
     }
 
     public func restore(events: [any DomainEvent]) throws {
@@ -15,6 +13,4 @@ extension ReadModel {
             try restore(event: event)
         }
     }
-
-    public func ensureInvariant() throws {}
 }
