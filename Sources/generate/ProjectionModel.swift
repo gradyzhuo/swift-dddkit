@@ -30,6 +30,9 @@ struct GenerateProjectionModelCommand: ParsableCommand {
     var configuration: GeneratorConfiguration
     
     @Option
+    var aggregateRootName: String
+    
+    @Option
     var inputType: InputType = .yaml
     
     @Option
@@ -40,16 +43,8 @@ struct GenerateProjectionModelCommand: ParsableCommand {
     
     func run() throws {
         
-        let eventGenerator = try EventGenerator(yamlFilePath: eventDefinitionPath)
-        
-        let filteredVaildCreatedEventDefinition: [Event] = eventGenerator.events.filter{
-            let deprecated = $0.definition.deprecated ?? false
-            return !deprecated && $0.definition.kind == .createdEvent
-        }
-        let createdEventDefinition = filteredVaildCreatedEventDefinition.first
-        
-        let generator = try ProjectionModelGenerator(yamlFilePath: projectionModelDefinitionPath, aggregateEventNames: eventGenerator.eventNames)
-        
+        let generator = try ProjectionModelGenerator(projectionModelYamlFileURL: .init(filePath: projectionModelDefinitionPath), aggregateRootName: aggregateRootName, aggregateEventsYamlFileURL: .init(filePath: eventDefinitionPath))
+    
         guard let outputPath = output else {
             throw GenerateCommand.Errors.outputPathMissing
         }
@@ -68,5 +63,6 @@ struct GenerateProjectionModelCommand: ParsableCommand {
         let content = lines.joined(separator: "\n")
         try content.write(toFile: outputPath, atomically: true, encoding: .utf8)
     }
+    
     
 }

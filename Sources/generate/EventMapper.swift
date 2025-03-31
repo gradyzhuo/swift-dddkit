@@ -34,6 +34,9 @@ struct GenerateEventMapperCommand: ParsableCommand {
     var inputType: InputType = .yaml
     
     @Option
+    var aggregateRootName: String
+    
+    @Option
     var accessModifier: AccessLevel?
     
     @Option(name: .shortAndLong, help: "The path of the generated swift file")
@@ -41,7 +44,9 @@ struct GenerateEventMapperCommand: ParsableCommand {
     
     func run() throws {
         let eventGenerator = try EventGenerator(yamlFilePath: eventDefinitionPath)
-        let projectionModelGenerator = try ProjectionModelGenerator(yamlFilePath: projectionModelDefinitionPath, aggregateEventNames: eventGenerator.eventNames)
+        
+        let projectionModelGenerator = try ProjectionModelGenerator(projectionModelYamlFileURL: .init(filePath: projectionModelDefinitionPath), aggregateRootName: aggregateRootName, aggregateEventsYamlFileURL: .init(filePath: eventDefinitionPath))
+        
         guard let outputPath = output else {
             throw GenerateCommand.Errors.outputPathMissing
         }

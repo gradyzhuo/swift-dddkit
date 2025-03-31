@@ -10,30 +10,24 @@ import Foundation
 package struct EventProjectionDefinition: Codable {
     package var idType: PropertyDefinition.PropertyType
     package let model: ModelKind
-    package let createdEvent: String
+    package let createdEvent: String?
     package let deletedEvent: String?
     package var events: [String]
     
     
-    package init(idType: PropertyDefinition.PropertyType, model: ModelKind, createdEvent: String, deletedEvent: String?, events: [String]) {
+    package init(idType: PropertyDefinition.PropertyType = .string, model: ModelKind, createdEvent: String?, deletedEvent: String?, events: [String]) {
         self.idType = idType
         self.model = model
         self.createdEvent = createdEvent
         self.deletedEvent = deletedEvent
         self.events = events
-        if case .readModel = model {
-            self.events.append(createdEvent)
-            if let deletedEvent {
-                self.events.append(deletedEvent)
-            }
-        }
     }
     
     package init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let idType = try container.decodeIfPresent(PropertyDefinition.PropertyType.self, forKey: .idType) ?? .string
         let model = try container.decode(EventProjectionDefinition.ModelKind.self, forKey: .model)
-        let createdEvent = try container.decode(String.self, forKey: .createdEvent)
+        let createdEvent = try container.decodeIfPresent(String.self, forKey: .createdEvent)
         let deletedEvent = try container.decodeIfPresent(String.self, forKey: .deletedEvent)
         let events = try container.decodeIfPresent([String].self, forKey: .events) ?? []
         

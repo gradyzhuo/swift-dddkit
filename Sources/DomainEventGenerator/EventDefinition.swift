@@ -22,6 +22,14 @@ package struct EventDefinitionCollection: Codable {
         })
         try dictionary.encode(to: encoder)
     }
+    
+    func getValidEvent(kind: Event.EventKind) -> Event? {
+        return events.first{
+            let deprecated = $0.definition.deprecated ?? false
+            return !deprecated && $0.definition.kind == kind
+        }
+    }
+    
 }
 
 package struct Event {

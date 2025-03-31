@@ -11,29 +11,31 @@ import Yams
 package struct ProjectionModelGenerator {
     package let definitions: [String: EventProjectionDefinition]
     
-    package init(definitions: [String: EventProjectionDefinition], aggregateEventNames: [String]){
+    package init(definitions: [String: EventProjectionDefinition], aggregateRootName: String, aggregateEvents: EventDefinitionCollection){
         
-        let definitionTuples = definitions.map{
-            var definition = $0.value
-            if $0.value.model == .aggregateRoot {
-                definition.events = aggregateEventNames
-            }
-            return ($0.key, definition)
+        let filteredDefinitions = definitions.filter{ $0.value.model != .aggregateRoot }
+        
+        let createdEvent = aggregateEvents.getValidEvent(kind: .createdEvent)
+        let deletedEvent = aggregateEvents.getValidEvent(kind: .deletedEvent)
+        
+        let aggregateEventNames = aggregateEvents.events.filter{ $0.name != createdEvent?.name && $0.name != deletedEvent?.name }.map{ $0.name }
+        
+        let aggregateRootProjectionModel = EventProjectionDefinition(model: .aggregateRoot, createdEvent: createdEvent?.name, deletedEvent: deletedEvent?.name, events: aggregateEventNames)
+        
+        self.definitions = definitions.merging([(aggregateRootName, aggregateRootProjectionModel)]) { lhs, rhs in
+            return lhs
         }
-        
-        self.definitions = Dictionary(uniqueKeysWithValues: definitionTuples)
     }
     
-    package init(yamlFileURL: URL, aggregateEventNames: [String]) throws {
-        let yamlData = try Data(contentsOf: yamlFileURL)
+    package init(projectionModelYamlFileURL: URL, aggregateRootName: String, aggregateEventsYamlFileURL: URL) throws {
+        let yamlData = try Data(contentsOf: projectionModelYamlFileURL)
         let yamlDecoder = YAMLDecoder()
         let definitions = try yamlDecoder.decode([String: EventProjectionDefinition].self, from: yamlData)
-        self.init(definitions: definitions, aggregateEventNames: aggregateEventNames)
-    }
-    
-    package init(yamlFilePath: String, aggregateEventNames: [String]) throws {
-        let url = URL(fileURLWithPath: yamlFilePath)
-        try self.init(yamlFileURL: url, aggregateEventNames: aggregateEventNames)
+        
+        let aggregateEventsData = try Data(contentsOf: aggregateEventsYamlFileURL)
+        let aggregateEventsDefinitions = try yamlDecoder.decode(EventDefinitionCollection.self, from: aggregateEventsData)
+        
+        self.init(definitions: definitions, aggregateRootName: aggregateRootName, aggregateEvents: aggregateEventsDefinitions)
     }
     
     package func render(accessLevel: AccessLevel) -> [String] {
@@ -51,7 +53,9 @@ package struct ProjectionModelGenerator {
             //created
             lines.append("extension \(protocolName) where Self: \(definition.model.protocol) {")
             lines.append("    \(accessLevel.rawValue) typealias ID = \(definition.idType.name)")
-            lines.append("    \(accessLevel.rawValue) typealias CreatedEventType = \(definition.createdEvent)")
+            if let createdEvent = definition.createdEvent{
+                lines.append("    \(accessLevel.rawValue) typealias CreatedEventType = \(createdEvent)")
+            }
             if let deletedEvent = definition.deletedEvent{
                 lines.append("    \(accessLevel.rawValue) typealias DeletedEventType = \(deletedEvent)")
             }
