@@ -177,12 +177,14 @@ await client.clearStreams(aggregateRootType: TestAggregateRoot.self, id: "idForT
 Prepare `event-generator-config.yaml` in target folder.
 ```yaml
 accessModifier: { internal, package, public }
+aggregateRootName: (Optional) A string to customize generated Protocol of AggregateRoot. 
 dependencies: [optional]
 ```
 
 e.g.
 ```yaml
 accessModifier: package
+aggregateRootName: String?
 dependencies: 
   - General
   - Utility
@@ -277,7 +279,7 @@ Prepare `projection-model.yaml` in target folder.
 
 ```yaml
 {model_name}:
- model: {aggregateRoot, readModel}
+ model: {readModel}
  createdEvent: { event_name implemented by DomainEvent }
  deletedEvent: { event_name implemented  by DeletedEvent }
  events: [readModel is required ]
@@ -286,11 +288,6 @@ Prepare `projection-model.yaml` in target folder.
 
 e.g. 
 ```yaml
-Quotation:
- model: aggregateRoot
- createdEvent: QuotationCreated
- deletedEvent: QuotationDeleted
-  
 GetQuotationReadModel:
  model: readModel
  createdEvent: QuotationCreated
