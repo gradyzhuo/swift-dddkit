@@ -7,7 +7,7 @@ public protocol ReadModel: Projectable, Codable {
 extension ReadModel {
 
     public init?(events: [any DomainEvent]) throws {
-        guard let createdEvent = sortedEvents.removeFirst() as? CreatedEventType else {
+        guard let createdEvent = events.removeFirst() as? CreatedEventType else {
             return nil
         }
 
