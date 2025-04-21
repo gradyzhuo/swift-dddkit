@@ -33,36 +33,38 @@ enum PluginError: Error {
             throw PluginError.configFileNotFound
         }
         
-        let generatedProjectionHelperSource = pluginWorkDirectory.appending(path: "generated-projection-model.swift")
-        let generatedEventMapperSource = pluginWorkDirectory.appending(path: "generated-event-mapper.swift")
+        //generated directories target
+        let generatedTargetDirectory = pluginWorkDirectory.appending(component: "generated-projection-models", directoryHint: .isDirectory)
+
+        //generated files target
+        let generatedProjectionHelperSource = generatedTargetDirectory.appending(path: "generated-projection-model.swift")
+        let generatedEventMapperSource = generatedTargetDirectory.appending(path: "generated-event-mapper.swift")
         
         return [
-            try .buildCommand(displayName: "ProjectionModel Generating...\(projectionModelSource.url.path())", executable: tool("generate"), arguments: [
-                "projection-model",
-                "--configuration", configSource.url.path(),
-                "--default-aggregate-root-name", targetName,
-                "--output", generatedProjectionHelperSource.path(),
-                "--events", eventSource.url.path(),
-                "\(projectionModelSource.url.path())"
-            ], inputFiles: [
-                eventSource.url,
-                projectionModelSource.url
-            ], outputFiles: [
-                generatedProjectionHelperSource
-            ]),
-            try .buildCommand(displayName: "EventMapper Generating...\(eventSource.url.path())", executable: tool("generate"), arguments: [
-                "event-mapper",
-                "--configuration", configSource.url.path(),
-                "--default-aggregate-root-name", targetName,
-                "--output", generatedEventMapperSource.path(),
-                eventSource.url.path(),
-                projectionModelSource.url.path()
-            ], inputFiles: [
-                eventSource.url,
-                projectionModelSource.url
-            ], outputFiles: [
-                generatedEventMapperSource
-            ])
+            try .prebuildCommand(
+                displayName: "ProjectionModel Generating...\(projectionModelSource.url.path())",
+                executable: tool("generate"),
+                arguments: [
+                    "projection-model",
+                    "--configuration", configSource.url.path(),
+                    "--default-aggregate-root-name", targetName,
+                    "--output", generatedProjectionHelperSource.path(),
+                    "--events", eventSource.url.path(),
+                    "\(projectionModelSource.url.path())"
+                ],
+                outputFilesDirectory: generatedTargetDirectory),
+            try .prebuildCommand(
+                displayName: "EventMapper Generating...\(eventSource.url.path())",
+                executable: tool("generate"),
+                arguments: [
+                    "event-mapper",
+                    "--configuration", configSource.url.path(),
+                    "--default-aggregate-root-name", targetName,
+                    "--output", generatedEventMapperSource.path(),
+                    eventSource.url.path(),
+                    projectionModelSource.url.path()
+                ],
+                outputFilesDirectory: generatedTargetDirectory)
         ]
     }
 }

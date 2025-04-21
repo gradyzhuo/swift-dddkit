@@ -28,20 +28,24 @@ enum PluginError: Error {
             throw PluginError.configFileNotFound
         }
         
-        let generatedEventsSource = pluginWorkDirectory.appending(path: "generated-event.swift")
-        
+        //generated directories target
+        let generatedTargetDirectory = pluginWorkDirectory.appending(component: "generated-projection-models", directoryHint: .isDirectory)
+
+        //generated files target
+        let generatedEventsSource = generatedTargetDirectory.appending(path: "generated-event.swift")
     
         return [
-            try .buildCommand(displayName: "Event Generating...\(inputSource.url.path())", executable: tool("generate"), arguments: [
-                "event",
-                "--configuration", "\(configSource.url.path())",
-                "--output", "\(generatedEventsSource.path())",
-                "\(inputSource.url.path())"
-            ], inputFiles: [
-                inputSource.url
-            ], outputFiles: [
-                generatedEventsSource
-            ])
+            try .prebuildCommand(
+                displayName: "Event Generating...\(inputSource.url.path())",
+                executable: tool("generate"),
+                arguments: [
+                    "event",
+                    "--configuration", "\(configSource.url.path())",
+                    "--output", "\(generatedEventsSource.path())",
+                    "\(inputSource.url.path())"
+                ],
+                outputFilesDirectory: generatedTargetDirectory)
+            
         ]
     }
 }

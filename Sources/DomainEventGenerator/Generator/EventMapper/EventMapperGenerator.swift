@@ -34,7 +34,7 @@ package struct EventMapperGenerator {
         
         for eventName in eventNames {
             lines.append("""
-        case "\\(\(eventName).self)":
+        case "\(eventName)":
             try eventData.decode(to: \(eventName).self)
 """)
         }
