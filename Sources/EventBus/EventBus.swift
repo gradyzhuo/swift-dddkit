@@ -1,27 +1,40 @@
 import DDDCore
 
-private struct EventSubscriber{
-    let eventName: String
-    let handle: (any DomainEvent) async throws -> Void
+package protocol EventSubscriber: Sendable{
+    associatedtype Event: DomainEvent
+    var eventName: String { get }
+    var handle: @Sendable (Event) async throws -> Void { get }
 }
 
-public class EventBus: DomainEventBus {
-    private var eventSubscribers: [EventSubscriber]
+
+package struct GeneralSubscriber<Event: DomainEvent>: EventSubscriber{
+    package let eventName: String
+    package let handle: @Sendable (Event) async throws -> Void
+}
+
+public actor EventBus: @preconcurrency DomainEventBus {
+    package private(set) var eventSubscribers: [any EventSubscriber]
 
     public func publish(event: some DomainEvent) async throws {
         for eventSubscriber in eventSubscribers {
             if eventSubscriber.eventName == event.eventType {
-                try await eventSubscriber.handle(event)
+                try await publish(of: eventSubscriber, event: event)
             }
         }
+    }
+    
+    package func publish<Subscriber: EventSubscriber>(of subscriber: Subscriber, event: some DomainEvent) async throws {
+        guard let event = event as? Subscriber.Event else {
+            return
+        }
+        try await subscriber.handle(event)
     }
 
     public func subscribe<EventType: DomainEvent>(to eventType: EventType.Type, handler: @escaping (_ event: EventType) async throws -> Void) rethrows {
         let eventTypeString = "\(eventType)"
-        let subscriber = EventSubscriber(eventName: eventTypeString){ event async throws in
-            if let typedEvent = event as? EventType {
-                try await handler(typedEvent)
-            }
+        
+        let subscriber = GeneralSubscriber<EventType>(eventName: eventTypeString){ event async throws in
+            try await handler(event)
         }
         eventSubscribers.append(subscriber)
     }

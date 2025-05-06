@@ -7,7 +7,7 @@
 
 import Foundation
 
-public class AggregateRootMetadata {
+public final class AggregateRootMetadata: Sendable {
     var events: [any DomainEvent] = []
 
     public package(set) var deleted: Bool
@@ -16,5 +16,9 @@ public class AggregateRootMetadata {
     public init() {
         deleted = false
         version = nil
+    }
+    
+    public func delete() {
+        self.deleted = true
     }
 }
