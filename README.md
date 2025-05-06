@@ -20,8 +20,7 @@ dependencies: [
 
 ### import 
 ```
-import DDDCore
-import EventSourcing
+import DDDKit
 import KurrentSupport
 ```
 
