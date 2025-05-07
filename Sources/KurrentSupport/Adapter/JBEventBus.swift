@@ -11,10 +11,14 @@ import KurrentDB
 extension EventBus{
     
     private func publish<Subscriber: EventSubscriber>(of subscriber: Subscriber, event: RecordedEvent) async throws{
-        guard let event = try event.decode(to: Subscriber.Event.self) else {
-            return
+        do{
+            guard let event = try event.decode(to: Subscriber.Event.self) else {
+                return
+            }
+            try await subscriber.handle(event)
+        }catch{
+            logger.debug("event handler failed, error: \(error).")
         }
-        try await subscriber.handle(event)
     }
     
     public func postEvent(event: RecordedEvent) async throws {
