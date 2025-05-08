@@ -7,9 +7,9 @@
 import DDDCore
 import KurrentDB
 
-extension DomainEventBus{
+extension DomainEventBus where Subscriber: EventSubscriber{
     
-    private func publish<Subscriber: EventSubscriber>(of subscriber: Subscriber, event: RecordedEvent) async throws{
+    private func publish(of subscriber: Subscriber, event: RecordedEvent) async throws{
         do{
             guard let event = try event.decode(to: Subscriber.Event.self) else {
                 return
