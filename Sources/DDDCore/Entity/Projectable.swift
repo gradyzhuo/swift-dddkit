@@ -1,4 +1,4 @@
-public protocol Projectable: Sendable {
+public protocol Projectable {
 
     associatedtype ID: Hashable
     
