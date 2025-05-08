@@ -2,7 +2,7 @@ import DDDCore
 
 package struct GeneralSubscriber<Event: DomainEvent>: EventSubscriber{
     package let eventName: String
-    package let handle: (Event) async throws -> Void
+    package let handle: @Sendable (Event) async throws -> Void
 }
 
 public class EventBus: DomainEventBus {

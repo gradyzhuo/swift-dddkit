@@ -8,5 +8,5 @@
 public protocol EventSubscriber{
     associatedtype Event: DomainEvent
     var eventName: String { get }
-    var handle: (Event) async throws -> Void { get }
+    var handle: @Sendable (Event) async throws -> Void { get }
 }
