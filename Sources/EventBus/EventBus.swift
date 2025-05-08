@@ -1,19 +1,12 @@
 import DDDCore
 
-package protocol EventSubscriber: Sendable{
-    associatedtype Event: DomainEvent
-    var eventName: String { get }
-    var handle: @Sendable (Event) async throws -> Void { get }
-}
-
-
 package struct GeneralSubscriber<Event: DomainEvent>: EventSubscriber{
     package let eventName: String
     package let handle: @Sendable (Event) async throws -> Void
 }
 
 public actor EventBus: @preconcurrency DomainEventBus {
-    package private(set) var eventSubscribers: [any EventSubscriber]
+    public private(set) var eventSubscribers: [any EventSubscriber]
 
     public func publish(event: some DomainEvent) async throws {
         try await withThrowingDiscardingTaskGroup { group in

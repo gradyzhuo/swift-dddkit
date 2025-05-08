@@ -5,10 +5,9 @@
 //  Created by Grady Zhuo on 2025/4/23.
 //
 import DDDCore
-import EventBus
 import KurrentDB
 
-extension EventBus{
+extension DomainEventBus{
     
     private func publish<Subscriber: EventSubscriber>(of subscriber: Subscriber, event: RecordedEvent) async throws{
         do{

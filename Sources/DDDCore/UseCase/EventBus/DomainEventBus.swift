@@ -1,6 +1,8 @@
 import Foundation
 
 public protocol DomainEventBus: Sendable {
+    var eventSubscribers: [any EventSubscriber] { get }
+    
     func publish<EventType: DomainEvent>(event: EventType) async throws
     func subscribe<EventType: DomainEvent>(to eventType: EventType.Type, handler: @escaping (_ event: EventType) async throws -> Void) rethrows
 }
