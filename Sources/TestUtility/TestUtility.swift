@@ -26,8 +26,8 @@ extension KurrentDBClient {
 }
 
 extension EventStoreDBClient {
-    public func clearStreams<T: Projectable>(projectableType: T.Type, id: T.ID, revision: KurrentDB.StreamRevision = .any, errorHandler: ((_ error: Error)->Void)? = nil) async {
-        await self.underlyingClient.clearStreams(projectableType: projectableType, id: id, revision: revision, errorHandler: errorHandler)
+    public func clearStreams<T: Projectable>(projectableType: T.Type, id: T.ID, execpted revision: KurrentDB.StreamRevision = .any, errorHandler: ((_ error: Error)->Void)? = nil) async {
+        await self.underlyingClient.clearStreams(projectableType: projectableType, id: id, execpted: revision, errorHandler: errorHandler)
     }
 }
 
