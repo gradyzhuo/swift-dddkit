@@ -32,10 +32,10 @@ let package = Package(
        ])
     ],
     dependencies: [
-    .package(url: "https://github.com/gradyzhuo/KurrentDB-Swift.git", exact: "1.10.0"),
-    .package(url: "https://github.com/apple/swift-log.git", from: "1.5.4"),
-        .package(url: "https://github.com/apple/swift-argument-parser", from: "1.3.0"),
-        .package(url: "https://github.com/jpsim/Yams.git", from: "5.1.3")
+        .package(url: "https://github.com/gradyzhuo/KurrentDB-Swift.git", from: "1.10.0"),
+        .package(url: "https://github.com/apple/swift-log.git", from: "1.5.4"),
+            .package(url: "https://github.com/apple/swift-argument-parser", from: "1.3.0"),
+            .package(url: "https://github.com/jpsim/Yams.git", from: "5.1.3")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
