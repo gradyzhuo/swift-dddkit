@@ -38,9 +38,10 @@ public actor TestBundle {
     }
     
     public func clearStreams() async {
-        await withTaskGroup { group in
+        await withTaskGroup(of: Void.self) { group in
             for streamIdentifier in self.streamIdentifiers {
-                group.addTask { [unowned self] in
+                group.addTask { [weak self] in
+                    guard let self else { return }
                     await self.clearStream(streamIdentifier: streamIdentifier)
                 }
             }
