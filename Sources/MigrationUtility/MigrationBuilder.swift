@@ -38,7 +38,7 @@ public actor MigrationBuilder<MigrationType: Migration>: Sendable{
         return self
     }
     
-    public func build(eventMapper: EventTypeMapper, userInfo: MigrationType.UserInfoType) -> MigrationType{
+    public func build(eventMapper: MigrationType.EventMapper, userInfo: MigrationType.UserInfoType) -> MigrationType{
         return MigrationType(eventMapper: eventMapper, handlers: handlers, createdHandler: createdHandler, userInfo: userInfo)
     }
 }

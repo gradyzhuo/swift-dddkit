@@ -13,15 +13,16 @@ import Foundation
 public protocol Migration: Sendable {
     associatedtype CreatedEvent: DomainEvent
     associatedtype AggregateRootType: AggregateRoot
+    associatedtype EventMapper: EventTypeMapper
     associatedtype UserInfoType
     typealias CreatedHandler = @Sendable (_ createdEvent: CreatedEvent, _ userInfo: UserInfoType?) throws -> AggregateRootType?
     
-    var eventMapper: EventTypeMapper { get }
+    var eventMapper: EventMapper { get }
     var createdHandler: CreatedHandler? { get }
     var handlers: [any MigrationHandler] { get }
     var userInfo: UserInfoType? { get }
     
-    init(eventMapper: EventTypeMapper, handlers: [any MigrationHandler], createdHandler: CreatedHandler?, userInfo: UserInfoType?)
+    init(eventMapper: EventMapper, handlers: [any MigrationHandler], createdHandler: CreatedHandler?, userInfo: UserInfoType?)
 }
 
 extension Migration {
