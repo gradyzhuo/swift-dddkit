@@ -13,19 +13,18 @@ let package = Package(
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "DDDKit",
-            targets: ["DDDKit"]
-        ),
+            targets: ["DDDKit"]),
         .library(
             name: "TestUtility",
-            targets: ["TestUtility"]
-        ),
+            targets: ["TestUtility"]),
+        .library(
+            name: "MigrationUtility",
+            targets: ["MigrationUtility"]),
         .library(
             name: "DomainEventGenerator",
-            targets: ["DomainEventGenerator"]
-        ),
+            targets: ["DomainEventGenerator"]),
        .plugin(name: "DomainEventGeneratorPlugin", targets: [
            "DomainEventGeneratorPlugin"
-           
        ]),
        .plugin(name: "ProjectionModelGeneratorPlugin", targets: [
            "ProjectionModelGeneratorPlugin"
@@ -47,37 +46,38 @@ let package = Package(
                 "KurrentSupport",
                 "EventBus",
                 .product(name: "Logging", package: "swift-log")
-            ]
-        ),
+            ]),
         .target(
             name: "DDDCore"),
         .target(
             name: "EventSourcing",
             dependencies: [
                 "DDDCore",
-            ]
-        ),
+            ]),
         .target(
             name: "KurrentSupport",
             dependencies: [
                 "DDDCore",
                 "EventSourcing",
                 .product(name: "EventStoreDB", package: "kurrentdb-swift")
-            ]
-        ),
+            ]),
         .target(
             name: "EventBus",
             dependencies: [
                 "DDDCore",
-            ]
-        ),
+            ]),
         .target(
             name: "TestUtility",
             dependencies: [
                 "DDDCore",
                 .product(name: "EventStoreDB", package: "kurrentdb-swift"),
-            ]
-        ),
+            ]),
+        .target(name: "MigrationUtility",
+                dependencies: [
+                    "DDDCore",
+                    "KurrentSupport",
+                    .product(name: "KurrentDB", package: "kurrentdb-swift")
+                ]),
         .testTarget(
             name: "DDDCoreTests",
             dependencies: ["DDDKit", "TestUtility"]
@@ -86,7 +86,6 @@ let package = Package(
                 dependencies: [
                     .product(name: "Yams", package: "yams")
                 ]),
-        
         .executableTarget(name: "generate",
                           dependencies: [
                             "DomainEventGenerator",
