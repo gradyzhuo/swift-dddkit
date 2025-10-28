@@ -95,6 +95,7 @@ public func withTestBundle(client: KurrentDBClient, cleanPhase: TestBundle.Clean
         try await action(bundle)
     }catch{
         print("Test failed with error: \(error)")
+        throw error
     }
     
     if cleanPhase.contains(.end) {
