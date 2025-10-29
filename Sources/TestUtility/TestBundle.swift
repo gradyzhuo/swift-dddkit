@@ -33,13 +33,17 @@ public actor TestBundle {
         return id
     }
     
+    public func generateAggregateRootId<T: AggregateRoot>(for aggregateRootType: T.Type, prefix: String = "testing") async -> String {
+        return await generateAggregateRootId(for: "\(aggregateRootType.self)", prefix: prefix)
+    }
+    
     public func generateId(for category: String, prefix: String = "testing") async -> String {
         let id = "\(prefix)\(UUID().uuidString)"
         self.commonIdentifiers.append("\(category)-\(id)")
         return id
     }
     
-    public func alsoClean<T: Projectable>(projectableType: T, id: T.ID) async {
+    public func alsoClean<T: Projectable>(projectableType: T.Type, id: T.ID) async {
         let streamIdentifier = StreamIdentifier(name: T.getStreamName(id: id))
         self.streamIdentifiers.append(streamIdentifier)
         
