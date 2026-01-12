@@ -19,7 +19,11 @@ public protocol MigrationHandler: Sendable {
 extension MigrationHandler {
     func decode(recordedEvent: RecordedEvent) -> EventType?{
         do{
-            return try recordedEvent.decode(to: EventType.self)
+            let event = try recordedEvent.decode(to: EventType.self)
+            guard recordedEvent.eventType == event?.eventType else {
+                return nil
+            }
+            return event
         }catch{
             print("[\(recordedEvent.eventType)] ignore event decoded error: \(error.localizedDescription)")
             return nil

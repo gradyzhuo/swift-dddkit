@@ -78,9 +78,11 @@ extension Migration {
         guard let userInfo else {
             return nil
         }
-        
+
         let createdHandler = self.createdHandler ?? { createdEvent, userInfo in
-            return try .init(events: [createdEvent])
+            let aggregateRoot = try AggregateRootType.init(events: [createdEvent])
+            try aggregateRoot?.apply(event: createdEvent)
+            return aggregateRoot
         }
 
         return try createdHandler(oldEvent, userInfo)
