@@ -12,7 +12,7 @@ import DomainEventGenerator
 
 struct GenerateEventMapperCommand: ParsableCommand {
     
-    static var configuration = CommandConfiguration(
+    static let configuration = CommandConfiguration(
         commandName: "event-mapper",
         abstract: "Generate event-mapper swift files.")
     

@@ -7,8 +7,8 @@
 
 import Foundation
 
-public protocol Entity: AnyObject {
-    associatedtype ID: Hashable
+public protocol Entity: Actor {
+    associatedtype ID: Hashable, Sendable
     
     var id: ID { get }
 }

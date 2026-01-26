@@ -1,12 +1,12 @@
-public protocol Projectable {
+public protocol Projectable: Sendable {
 
-    associatedtype ID: Hashable
+    associatedtype ID: Hashable & Sendable
     
     static var category: String { get }
     
     var id: ID { get }
-    init?(events: [any DomainEvent]) throws
-    func when(happened event: some DomainEvent) throws
+    init?(events: [any DomainEvent]) async throws
+    mutating func when(happened event: some DomainEvent) throws
 }
 
 extension Projectable {

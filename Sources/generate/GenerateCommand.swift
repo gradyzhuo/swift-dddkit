@@ -33,7 +33,7 @@ struct GeneratorConfiguration: Codable {
 
 @main
 struct GenerateCommand: ParsableCommand {
-    static var configuration = CommandConfiguration(
+    static let configuration = CommandConfiguration(
         commandName: "generate",
         abstract: "Generate swift files.",
         subcommands: [

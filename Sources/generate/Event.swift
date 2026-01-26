@@ -12,7 +12,7 @@ import DomainEventGenerator
 
 struct GenerateEventCommand: ParsableCommand {
     
-    static var configuration = CommandConfiguration(
+    static let configuration = CommandConfiguration(
         commandName: "event",
         abstract: "Generate event swift files.")
     

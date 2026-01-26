@@ -31,16 +31,16 @@ extension Migration {
             let record = try response.event.record
             partialResult.append(record)
         }
-        return try migrate(records: records)
+        return try await migrate(records: records)
     }
     
-    public func migrate(records: [RecordedEvent]) throws -> AggregateRootType? {
+    public func migrate(records: [RecordedEvent]) async throws -> AggregateRootType? {
         
         guard let createdRecordedEvent = records.first else {
             return nil
         }
         
-        guard let aggregateRoot = try initAggregateRoot(recorded: createdRecordedEvent) else {
+        guard var aggregateRoot = try await initAggregateRoot(recorded: createdRecordedEvent) else {
             return nil
         }
         
@@ -64,13 +64,13 @@ extension Migration {
                 guard let event = try eventMapper.mapping(eventData: record) else {
                     break
                 }
-                try aggregateRoot.apply(event: event)
+                try await aggregateRoot.apply(event: event)
             }
         }
         return aggregateRoot
     }
     
-    public func initAggregateRoot(recorded: RecordedEvent) throws -> AggregateRootType? {
+    public func initAggregateRoot(recorded: RecordedEvent) async throws -> AggregateRootType? {
         guard let oldEvent = try recorded.decode(to: CreatedEvent.self) else {
             return nil
         }
@@ -80,12 +80,12 @@ extension Migration {
         }
 
         let createdHandler = self.createdHandler ?? { createdEvent, userInfo in
-            let aggregateRoot = try AggregateRootType.init(events: [createdEvent])
-            try aggregateRoot?.apply(event: createdEvent)
+            let aggregateRoot = try await AggregateRootType.init(events: [createdEvent])
+            try await aggregateRoot?.apply(event: createdEvent)
             return aggregateRoot
         }
 
-        return try createdHandler(oldEvent, userInfo)
+        return try await createdHandler(oldEvent, userInfo)
     }
     
     func handleEvent<Handler: MigrationHandler>(aggregateRoot: AggregateRootType, handler: Handler, event: any DomainEvent) throws -> Bool {

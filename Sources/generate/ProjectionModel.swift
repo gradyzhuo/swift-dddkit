@@ -11,7 +11,7 @@ import DomainEventGenerator
 
 struct GenerateProjectionModelCommand: ParsableCommand {
     
-    static var configuration = CommandConfiguration(
+    static let configuration = CommandConfiguration(
         commandName: "projection-model",
         abstract: "Generate projection model swift files.")
     

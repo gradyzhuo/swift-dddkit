@@ -33,8 +33,9 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/gradyzhuo/KurrentDB-Swift.git", from: "1.10.0"),
         .package(url: "https://github.com/apple/swift-log.git", from: "1.5.4"),
-            .package(url: "https://github.com/apple/swift-argument-parser", from: "1.3.0"),
-            .package(url: "https://github.com/jpsim/Yams.git", from: "5.1.3")
+        .package(url: "https://github.com/apple/swift-argument-parser", from: "1.3.0"),
+        .package(url: "https://github.com/jpsim/Yams.git", from: "5.1.3"),
+        .package(url: "https://github.com/apple/swift-async-algorithms.git", from: "1.0.4")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -45,7 +46,8 @@ let package = Package(
                 "EventSourcing",
                 "KurrentSupport",
                 "EventBus",
-                .product(name: "Logging", package: "swift-log")
+                .product(name: "Logging", package: "swift-log"),
+                .product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
             ]),
         .target(
             name: "DDDCore"),
@@ -82,6 +84,11 @@ let package = Package(
             name: "DDDCoreTests",
             dependencies: ["DDDKit", "TestUtility"]
         ),
+        
+            .testTarget(
+                name: "EventSourcingTests",
+                dependencies: ["DDDKit", "EventSourcing", "TestUtility"]
+            ),
         .target(name: "DomainEventGenerator",
                 dependencies: [
                     .product(name: "Yams", package: "yams")
@@ -104,8 +111,5 @@ let package = Package(
             "generate"
           ]),
         
-    ],
-    swiftLanguageModes: [
-        .v5
     ]
 )

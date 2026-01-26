@@ -4,7 +4,12 @@ import KurrentDB
 import Foundation
 import Logging
 
-public class KurrentStorageCoordinator<ProjectableType: Projectable>: EventStorageCoordinator {
+fileprivate struct EventWrapped: Sendable{
+    let event: any DomainEvent
+    let revision: UInt64
+}
+
+public actor KurrentStorageCoordinator<ProjectableType: Projectable>: EventStorageCoordinator {
     let logger = Logger(label: "KurrentStorageCoordinator")
     let eventMapper: any EventTypeMapper
     let client: KurrentDBClient
@@ -13,6 +18,7 @@ public class KurrentStorageCoordinator<ProjectableType: Projectable>: EventStora
         self.eventMapper = eventMapper
         self.client = client
     }
+
     public func append(events: [any DDDCore.DomainEvent], byId id: ProjectableType.ID, version: UInt64?, external: [String:String]?) async throws -> UInt64? {
         let streamName = ProjectableType.getStreamName(id: id)
         let events = try events.map {
@@ -40,20 +46,24 @@ public class KurrentStorageCoordinator<ProjectableType: Projectable>: EventStora
         
         let streamName = ProjectableType.getStreamName(id: id)
         do{
-            let responses = try await client.readStream(.init(name: streamName)){
+            let recordEvents:[RecordedEvent] = try await client.readStream(.init(name: streamName)){
                     $0.startFrom(revision: .start)
                       .resolveLinks()
+            }.map { response in
+                try response.event.record
+            }.reduce(.init()) { partialResult, event in
+                return partialResult + [event]
             }
-
-            let eventWrappers: [(event: any DomainEvent, revision: UInt64)] = try await responses.reduce(into: .init()) {
+            
+            let eventWrappers: [EventWrapped] = recordEvents.reduce(into: .init()) {
                 do{
-                    let recordedEvent = try $1.event.record
-                    guard let event = try self.eventMapper.mapping(eventData: recordedEvent) else {
+                    guard let event = try self.eventMapper.mapping(eventData: $1) else {
                         return
                     }
-                    $0.append((event: event, revision: recordedEvent.revision))
+                    $0.append(.init(event: event, revision: $1.revision))
                 }catch {
                     logger.warning("skipped event cause error happened. error: \(error)")
+                    return
                 }
             }
             

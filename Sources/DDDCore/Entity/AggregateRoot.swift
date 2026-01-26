@@ -1,10 +1,10 @@
 import Foundation
 
-public protocol AggregateRoot: Projectable, Entity {
+public protocol AggregateRoot: Projectable, Entity{
     associatedtype CreatedEventType: DomainEvent
     associatedtype DeletedEventType: DeletedEvent
 
-    var metadata: AggregateRootMetadata { get }
+    var metadata: AggregateRootMetadata { set get }
 
     init?(first createdEvent: CreatedEventType, other events: [any DomainEvent]) throws
 
@@ -24,20 +24,21 @@ extension AggregateRoot {
     }
     
     public var deleted: Bool {
-        set{
-            metadata.deleted = newValue
-        }
         get {
             metadata.deleted
         }
     }
 
     public var events: [any DomainEvent] {
-        metadata.events
+        get {
+            metadata.events
+        }
     }
 
     public var version: UInt64? {
-        metadata.version
+        get {
+            metadata.version
+        }
     }
 
     public func markDelete() throws {
@@ -45,6 +46,7 @@ extension AggregateRoot {
     }
     
     public func apply(event: some DomainEvent) throws {
+        let deleted = metadata.deleted
         guard !deleted else {
             throw DDDError.operationNotAllow(operation: "apply", reason: "the aggregate root `\(Self.self)(\(id))` is deleted.", userInfos: ["event": event, "aggregateRootType": "\(Self.self)", "aggregateRootId": id])
         }
@@ -62,6 +64,10 @@ extension AggregateRoot {
 
     public func add(domainEvent: some DomainEvent) throws {
         metadata.events.append(domainEvent)
+    }
+    
+    public func update(version: UInt64){
+        metadata.version = version
     }
 
     public func clearAllDomainEvents() throws {

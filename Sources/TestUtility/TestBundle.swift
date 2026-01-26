@@ -73,7 +73,7 @@ public actor TestBundle {
 }
 
 extension TestBundle {
-    public struct CleanPhase: OptionSet{
+    public struct CleanPhase: OptionSet, Sendable{
         public init(rawValue: UInt8) {
             self.rawValue = rawValue
         }

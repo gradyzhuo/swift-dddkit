@@ -10,9 +10,9 @@ import Foundation
 public struct DDDError: Error {
     public let code: Code
     public let message: String
-    public let userInfos: [String: Any]
+    public let userInfos: [String: Sendable]
 
-    public init(code: Code, message: String, userInfos: [String: Any]) {
+    public init(code: Code, message: String, userInfos: [String:Sendable]) {
         self.code = code
         self.message = message
         self.userInfos = userInfos
@@ -20,18 +20,19 @@ public struct DDDError: Error {
 }
 
 extension DDDError {
-    public enum Code: Int {
+    public enum Code: Int, Sendable {
         case undefined = 900
         case usecaseExecutionFailure = 101
         case aggregateNotFound = 201
         case aggregateOperationNotAllowed = 202
+        case eventsNotFound = 401
     }
 }
 
 // MARK: - Define errors with enum-like.
 
 extension DDDError {
-    public static func executeUsecaseFailed(usecase: any Usecase, input: any Input, userInfos: [String: Any]? = nil) -> Self {
+    public static func executeUsecaseFailed(usecase: any Usecase, input: any Input, userInfos: [String: Sendable]? = nil) -> Self {
         let errorCode = DDDError.Code.usecaseExecutionFailure
         let message = "[\(errorCode)] The error happened with executing usecase \(usecase) by input: \(input). "
         let useInfos = userInfos ?? [:]
@@ -48,8 +49,18 @@ extension DDDError {
         return .init(code: errorCode, message: message, userInfos: [:])
     }
     
-    public static func operationNotAllow(operation: String, reason: String, userInfos: [String: Any]? = nil) -> Self {
+    public static func operationNotAllow(operation: String, reason: String, userInfos: [String: Sendable]? = nil) -> Self {
         let errorCode = DDDError.Code.aggregateOperationNotAllowed
+        let message = "[\(errorCode)] `\(operation)` not allowed, because \(reason)."
+        var userInfos = userInfos ?? [:]
+        userInfos["operation"] = operation
+        userInfos["reason"] = reason
+        return .init(code: errorCode, message: message, userInfos: userInfos)
+    }
+    
+    public static func eventsNotFoundInPresenter(operation: String, presenterType: String, userInfos: [String: Sendable]? = nil) -> Self {
+        let errorCode = DDDError.Code.eventsNotFound
+        let reason = "events not found to build readModel in presenter \(presenterType)"
         let message = "[\(errorCode)] `\(operation)` not allowed, because \(reason)."
         var userInfos = userInfos ?? [:]
         userInfos["operation"] = operation

@@ -10,6 +10,6 @@ import EventSourcing
 import KurrentDB
 import Foundation
 
-public protocol EventTypeMapper {
+public protocol EventTypeMapper: Sendable {
     func mapping(eventData: RecordedEvent) throws -> (any DomainEvent)?
 }
