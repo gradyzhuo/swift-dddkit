@@ -13,8 +13,8 @@ extension EventSourcingRepository {
         try await self.save(aggregateRoot: aggregateRoot, external: ["userId": userId])
     }
     
-    public func delete(aggregateRoot: AggregateRootType, userId: String) async throws {
-        try await self.delete(aggregateRoot: aggregateRoot, external: ["userId": userId])
+    public func delete(byId id: AggregateRootType.ID, userId: String) async throws {
+        try await self.delete(byId: id, external: ["userId": userId])
     }
 }
 
