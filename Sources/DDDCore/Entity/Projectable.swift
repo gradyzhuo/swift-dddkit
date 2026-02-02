@@ -1,6 +1,6 @@
-public protocol Projectable: Actor {
+public protocol Projectable {
 
-    associatedtype ID: Hashable & Sendable
+    associatedtype ID: Hashable
     
     static var category: String { get }
     
