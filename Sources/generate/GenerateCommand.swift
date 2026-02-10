@@ -4,8 +4,6 @@
 //
 //  Created by 卓俊諺 on 2025/2/11.
 //
-
-
 import Foundation
 import DomainEventGenerator
 import ArgumentParser
@@ -15,8 +13,13 @@ enum InputType: String, Codable, ExpressibleByArgument {
     case yaml
 }
 
-extension AccessLevel: ExpressibleByArgument {
+struct AccessLevelArgument: ExpressibleByArgument {
+    let value: AccessLevel
     
+    init?(argument: String) {
+        // 你的解析邏輯
+        self.value = .init(rawValue: argument) ?? .internal
+    }
 }
 
 struct GeneratorConfiguration: Codable {

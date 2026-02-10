@@ -35,7 +35,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-log.git", from: "1.5.4"),
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.3.0"),
         .package(url: "https://github.com/jpsim/Yams.git", from: "5.1.3"),
-        .package(url: "https://github.com/apple/swift-async-algorithms.git", from: "1.0.4")
+        .package(url: "https://github.com/apple/swift-async-algorithms.git", from: "1.0.4"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -105,20 +105,16 @@ let package = Package(
             "generate"
           ]),
         .plugin(
-          name: "DomainEventCommandPlugin",
+          name: "PresenterCommandPlugin",
           capability: .command(
-            intent: .custom(verb: "generate-events", description: "generate-events"),
-            permissions: [PluginPermission.writeToPackageDirectory(reason: "it will generate events swift files.")]),
+            intent: .custom(
+                verb: "generate-presenter",
+                description: "generate-presenter"),
+            permissions: [
+                PluginPermission.writeToPackageDirectory(
+                    reason: "it will generate projection swift files.")]),
           dependencies: [
-            "generate"
-          ]),
-        .plugin(
-          name: "ProjectionModelCommandPlugin",
-          capability: .command(
-            intent: .custom(verb: "generate-model", description: "generate-model"),
-            permissions: [PluginPermission.writeToPackageDirectory(reason: "it will generate projection swift files.")]),
-          dependencies: [
-            "generate"
+            "generate",
           ]),
         .plugin(
           name: "ProjectionModelGeneratorPlugin",

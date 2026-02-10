@@ -24,8 +24,10 @@ extension DDDError {
         case undefined = 900
         case usecaseExecutionFailure = 101
         case aggregateNotFound = 201
+        case presenterConstructionFailed = 301
         case aggregateOperationNotAllowed = 202
         case eventsNotFound = 401
+        
     }
 }
 
@@ -64,6 +66,14 @@ extension DDDError {
         let message = "[\(errorCode)] `\(operation)` not allowed, because \(reason)."
         var userInfos = userInfos ?? [:]
         userInfos["operation"] = operation
+        userInfos["reason"] = reason
+        return .init(code: errorCode, message: message, userInfos: userInfos)
+    }
+    
+    public static func presenterOperationFailed(presenterType: String, id: String, reason: String, userInfos: [String: Sendable]? = nil) -> Self {
+        let errorCode = DDDError.Code.presenterConstructionFailed
+        let message = "[\(errorCode)] It's failed in \(presenterType):\(id), because \(reason)."
+        var userInfos = userInfos ?? [:]
         userInfos["reason"] = reason
         return .init(code: errorCode, message: message, userInfos: userInfos)
     }

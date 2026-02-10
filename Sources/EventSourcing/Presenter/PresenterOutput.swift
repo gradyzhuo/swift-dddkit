@@ -1,6 +1,6 @@
 import Foundation
 
-public struct PresenterOutput<ReadModelType> {
+public struct PresenterOutput<ReadModelType: ReadModel> {
     public let readModel: ReadModelType
     public let message: String?
     

@@ -1,7 +1,7 @@
 import DDDCore
 import Foundation
 
-public protocol EventStorageCoordinator<ProjectableType>: Actor {
+public protocol EventStorageCoordinator<ProjectableType> {
     associatedtype ProjectableType: Projectable
 
     func fetchEvents(byId id: ProjectableType.ID) async throws -> (events: [any DomainEvent], latestRevision: UInt64)?

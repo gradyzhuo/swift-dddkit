@@ -21,7 +21,7 @@ struct GenerateProjectionModelCommand: ParsableCommand {
     @Argument(help: "The path of the projection-model file.", completion: .file(extensions: ["yaml", "yam"]))
     var projectionModelDefinitionPath: String
     
-    @Option(completion: .file(extensions: ["yaml", "yam"]), transform: {
+    @Option(name: .customLong("test-configuration"),completion: .file(extensions: ["yaml", "yam"]), transform: {
         let url = URL(fileURLWithPath: $0)
         let yamlData = try Data(contentsOf: url)
         let yamlDecoder = YAMLDecoder()
@@ -36,7 +36,7 @@ struct GenerateProjectionModelCommand: ParsableCommand {
     var inputType: InputType = .yaml
     
     @Option
-    var accessModifier: AccessLevel?
+    var accessModifier: AccessLevelArgument?
     
     @Option(name: .shortAndLong, help: "The path of the generated swift file")
     var output: String? = nil
@@ -45,13 +45,15 @@ struct GenerateProjectionModelCommand: ParsableCommand {
         
         let aggregateRootName = configuration.aggregateRootName ?? defaultAggregateRootName
         
+        let aggregateRootGenerator = try AggregateRootGenerator(aggregateRootName: aggregateRootName, aggregateEventsYamlFileURL: .init(filePath: eventDefinitionPath))
+        
         let generator = try ProjectionModelGenerator(projectionModelYamlFileURL: .init(filePath: projectionModelDefinitionPath), aggregateRootName: aggregateRootName, aggregateEventsYamlFileURL: .init(filePath: eventDefinitionPath))
     
         guard let outputPath = output else {
             throw GenerateCommand.Errors.outputPathMissing
         }
         
-        let accessModifier = accessModifier ?? configuration.accessModifier
+        let accessModifier = accessModifier?.value ?? configuration.accessModifier
         
         let defaultDependencies = ["Foundation", "DDDCore"]
         let configDependencies = configuration.dependencies ?? []

@@ -31,7 +31,7 @@ struct GenerateEventCommand: ParsableCommand {
     var inputType: InputType = .yaml
     
     @Option
-    var accessModifier: AccessLevel?
+    var accessModifier: AccessLevelArgument?
     
     @Option(name: .shortAndLong, help: "The path of the generated swift file")
     var output: String? = nil
@@ -43,7 +43,7 @@ struct GenerateEventCommand: ParsableCommand {
             throw GenerateCommand.Errors.outputPathMissing
         }
         
-        let accessModifier = accessModifier ?? configuration.accessModifier
+        let accessModifier = accessModifier?.value ?? configuration.accessModifier
         
         let defaultDependencies = ["Foundation", "DDDCore"]
         let configDependencies = configuration.dependencies ?? []

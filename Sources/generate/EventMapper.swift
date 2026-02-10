@@ -37,7 +37,7 @@ struct GenerateEventMapperCommand: ParsableCommand {
     var defaultAggregateRootName: String
     
     @Option
-    var accessModifier: AccessLevel?
+    var accessModifier: AccessLevelArgument?
     
     @Option(name: .shortAndLong, help: "The path of the generated swift file")
     var output: String? = nil
@@ -45,23 +45,39 @@ struct GenerateEventMapperCommand: ParsableCommand {
     func run() throws {
         let aggregateRootName = configuration.aggregateRootName ?? defaultAggregateRootName
         
-        let projectionModelGenerator = try ProjectionModelGenerator(projectionModelYamlFileURL: .init(filePath: projectionModelDefinitionPath), aggregateRootName: aggregateRootName, aggregateEventsYamlFileURL: .init(filePath: eventDefinitionPath))
+        let aggregateEventsYamlFileURL = URL.init(filePath: eventDefinitionPath)
+        let aggregateRootGenerator = try AggregateRootGenerator(aggregateRootName: aggregateRootName, aggregateEventsYamlFileURL: aggregateEventsYamlFileURL)
+        
+        let presenterGenerator = try PresenterGenerator(projectionModelYamlFileURL: .init(filePath: projectionModelDefinitionPath))
+//        let projectionModelGenerator = try ProjectionModelGenerator(projectionModelYamlFileURL: .init(filePath: projectionModelDefinitionPath), aggregateRootName: aggregateRootName, aggregateEventsYamlFileURL: .init(filePath: eventDefinitionPath))
         
         guard let outputPath = output else {
             throw GenerateCommand.Errors.outputPathMissing
         }
         
-        let accessModifier = accessModifier ?? configuration.accessModifier
+        let accessModifier = accessModifier?.value ?? configuration.accessModifier
         
         let defaultDependencies = ["Foundation", "DDDCore", "KurrentSupport", "KurrentDB"]
         let configDependencies = configuration.dependencies ?? []
         let headerGenerator = HeaderGenerator(dependencies: defaultDependencies + configDependencies)
-
+        
         var lines: [String] = []
         lines.append(contentsOf: headerGenerator.render())
         lines.append("")
         
-        for (modelName, projectionModelDefinition) in projectionModelGenerator.definitions {
+        let (modelName, aggregateRootDefinition) = aggregateRootGenerator.wrappedDefinition
+        var eventNames = aggregateRootDefinition.events
+        eventNames.append(contentsOf: aggregateRootDefinition.createdEvents)
+        if let deletedEvent = aggregateRootDefinition.deletedEvent {
+            eventNames.append(deletedEvent)
+        }
+        let eventMapperGenerator = EventMapperGenerator(modelName: modelName, eventNames: eventNames)
+        lines.append(contentsOf: eventMapperGenerator.render(accessLevel: accessModifier))
+        lines.append("")
+        
+        
+        
+        for (modelName, projectionModelDefinition) in presenterGenerator.definitions {
             var eventNames = projectionModelDefinition.events
             eventNames.append(contentsOf: projectionModelDefinition.createdEvents)
             if let deletedEvent = projectionModelDefinition.deletedEvent {
