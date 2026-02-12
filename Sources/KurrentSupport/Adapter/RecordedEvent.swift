@@ -1,4 +1,4 @@
-import EventStoreDB
+import KurrentDB
 import Foundation
 
 extension RecordedEvent {
