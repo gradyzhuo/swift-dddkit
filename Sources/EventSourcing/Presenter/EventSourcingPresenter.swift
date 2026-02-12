@@ -7,9 +7,10 @@ extension ReadModel {
     }
 }
 
-public protocol EventSourcingPresenter {
+public protocol EventSourcingPresenter: Projectable {
     associatedtype ReadModelType: ReadModel
     
-    init?(events: [any DomainEvent])
+    func apply(events: [any DomainEvent]) throws
     func buildReadModel() throws -> PresenterOutput<ReadModelType>?
 }
+

@@ -7,14 +7,6 @@
 import KurrentDB
 import EventSourcing
 
-struct KurrentProjector<PresenterType: EventSourcingPresenter> {
-    typealias PresenterType = PresenterType
-    typealias StorageCoordinator = EventStorageCoordinator
+public protocol KurrentProjector: EventStorageProjector where StorageCoordinator == KurrentStorageCoordinator<PresenterType>{
     
-    let coordinator: KurrentStorageCoordinator
-    
-    init(client: KurrentDBClient, category: String, eventMapper: any EventTypeMapper, coordinator: KurrentStorageCoordinator, id: String){
-        self.coordinator = coordinator
-        self.coordinator.fetchEvents(byId: id)
-    }
 }

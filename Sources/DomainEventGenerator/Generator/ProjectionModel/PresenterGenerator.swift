@@ -38,10 +38,6 @@ package struct PresenterGenerator {
             let protocolName = "\(modelName)PresenterProtocol"
 
             var whereExpression = "ID == \(definition.idType.name)"
-            //whereExpression = whereExpression// + ", CreatedEventType == \(createdEvent)"
-            if let deletedEvent = definition.deletedEvent{
-                whereExpression = whereExpression + ", DeletedEventType == \(deletedEvent)"
-            }
             
             //MARK: protocol definition generated
             ///
@@ -66,7 +62,7 @@ package struct PresenterGenerator {
             // `init` begin
             lines.append("""
 extension \(protocolName) {
-    public init?(events: [any DomainEvent]) throws {
+    public func apply(events: [any DomainEvent]) throws {
         for event in events {
             switch event {
 """)

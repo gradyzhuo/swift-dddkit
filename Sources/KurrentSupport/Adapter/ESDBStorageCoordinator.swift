@@ -9,20 +9,18 @@ fileprivate struct EventWrapped: Sendable{
     let revision: UInt64
 }
 
-public actor KurrentStorageCoordinator: EventStorageCoordinator {
+public class KurrentStorageCoordinator<ProjectableType: Projectable>: EventStorageCoordinator {
     let logger = Logger(label: "KurrentStorageCoordinator")
     let eventMapper: any EventTypeMapper
     let client: KurrentDBClient
-    let category: String
 
-    public init(client: KurrentDBClient, category: String, eventMapper: any EventTypeMapper) {
+    public init(client: KurrentDBClient, eventMapper: any EventTypeMapper) {
         self.eventMapper = eventMapper
         self.client = client
-        self.category = category
     }
 
-    public func append(events: [any DDDCore.DomainEvent], byId id: String, version: UInt64?, external: [String:String]?) async throws -> UInt64? {
-        let streamName = "\(category)-\(id)"
+    public func append(events: [any DDDCore.DomainEvent], byId id: ProjectableType.ID, version: UInt64?, external: [String:String]?) async throws -> UInt64? {
+        let streamName = ProjectableType.getStreamName(id: id)
         let events = try events.map {
             let customMetadata = CustomMetadata(
                 className: "\(type(of: $0))",
@@ -44,8 +42,9 @@ public actor KurrentStorageCoordinator: EventStorageCoordinator {
         }
     }
 
-    public func fetchEvents(byId id: String) async throws -> (events: [any DomainEvent], latestRevision: UInt64)? {
-        let streamName = "\(category)-\(id)"
+    public func fetchEvents(byId id: ProjectableType.ID) async throws -> (events: [any DomainEvent], latestRevision: UInt64)? {
+        
+        let streamName = ProjectableType.getStreamName(id: id)
         do{
             let recordEvents:[RecordedEvent] = try await client.readStream(.init(name: streamName)){
                     $0.startFrom(revision: .start)
@@ -87,9 +86,8 @@ public actor KurrentStorageCoordinator: EventStorageCoordinator {
         }
     }
     
-    public func purge(byId id: String) async throws {
-        let streamName = "\(category)-\(id)"
-        try await self.client.deleteStream(streamName)
+    public func purge(byId id: ProjectableType.ID) async throws {
+        try await self.client.deleteStream(ProjectableType.getStreamName(id: id))
     }
     
 }

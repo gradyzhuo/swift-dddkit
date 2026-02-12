@@ -4,6 +4,3 @@
 @_exported import EventBus
 
 
-struct Presenter: BusinessClientEvidenceInfoReadModelPresenterProtocol{
-    
-}
