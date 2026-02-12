@@ -6,12 +6,19 @@ public protocol AggregateRoot: Projectable, Entity where ID == String{
     var metadata: AggregateRootMetadata { set get }
 
 
+    init?(events: [any DomainEvent]) throws
+    func when(happened event: some DomainEvent) throws
+    
     func add(domainEvent: some DomainEvent) throws
     func ensureInvariant() throws
     func markDelete() throws
 }
 
 extension AggregateRoot {
+    
+    public static var category: String {
+        "\(Self.self)"
+    }
     
     public var deleted: Bool {
         get {

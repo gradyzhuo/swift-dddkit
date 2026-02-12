@@ -6,7 +6,7 @@ public protocol EventStorageProjector<StorageCoordinator> {
     associatedtype StorageCoordinator: EventStorageCoordinator<PresenterType>
     
     var coordinator: StorageCoordinator { get }
-    var presenter: PresenterType { set get }
+    var presenter: PresenterType { get }
 }
 
 extension EventStorageProjector {
