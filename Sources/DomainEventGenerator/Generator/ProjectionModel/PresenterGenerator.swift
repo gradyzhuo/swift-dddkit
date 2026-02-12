@@ -75,7 +75,7 @@ extension \(protocolName) {
             
             lines.append("""
             default:
-                return nil
+                return
             }
         }
     }
