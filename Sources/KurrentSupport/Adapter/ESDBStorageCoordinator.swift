@@ -27,7 +27,8 @@ public class KurrentStorageCoordinator<ProjectableType: Projectable>: EventStora
             guard let version else {
                 return options.revision(expected: .any)
             }
-            return options.revision(expected: .revision(UInt64(version)))
+            
+            return options.revision(expected: .at(UInt64(version)))
         }
 
         return response.currentRevision.flatMap {
