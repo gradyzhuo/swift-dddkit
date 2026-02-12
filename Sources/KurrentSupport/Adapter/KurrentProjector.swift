@@ -5,7 +5,10 @@
 //  Created by Grady Zhuo on 2026/2/6.
 //
 import KurrentDB
+import DDDCore
 import EventSourcing
+
+
 
 public struct KurrentProjector<PresenterType: EventSourcingPresenter>: EventStorageProjector{
     public typealias StorageCoordinator = KurrentStorageCoordinator<PresenterType>
@@ -19,6 +22,11 @@ public struct KurrentProjector<PresenterType: EventSourcingPresenter>: EventStor
     }
     
     public init(client: KurrentDBClient, eventMapper: any EventTypeMapper, presenter: PresenterType){
+        self.init(coordinator: .init(client: client, eventMapper: eventMapper), presenter: presenter)
+    }
+
+    public init(client: KurrentDBClient, eventMappers: [any EventTypeMapper], presenter: PresenterType){
+        let eventMapper = CrossAggregateEventTypeMapper(eventMappers: eventMappers)
         self.init(coordinator: .init(client: client, eventMapper: eventMapper), presenter: presenter)
     }
 

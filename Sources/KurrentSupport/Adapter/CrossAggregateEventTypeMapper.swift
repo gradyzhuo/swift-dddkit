@@ -1,0 +1,26 @@
+//
+//  CrossAggregateEventTypeMapper.swift
+//  DDDKit
+//
+//  Created by Grady Zhuo on 2026/2/12.
+//
+import KurrentDB
+import DDDCore
+
+struct CrossAggregateEventTypeMapper: EventTypeMapper {
+    let eventMappers: [any EventTypeMapper]
+    
+    public func mapping(eventData: RecordedEvent) throws -> (any DomainEvent)? {
+        for eventMapper in eventMappers {
+            guard let event = try eventMapper.mapping(eventData: eventData) else {
+                continue
+            }
+            return event
+        }
+        return nil
+    }
+    
+    public init(eventMappers: [any EventTypeMapper]){
+        self.eventMappers = eventMappers
+    }
+}
