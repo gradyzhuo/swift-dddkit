@@ -24,7 +24,7 @@ extension AggregateRoot {
         get{
             return switch categoryRule {
             case .fromClass(let prefix):
-                "\(prefix)\(Self.self)".replacing("Presenter", with: "")
+                "\(prefix)\(Self.self)"
             case .custom(let customCategory):
                 customCategory
             }
