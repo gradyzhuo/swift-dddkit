@@ -1,4 +1,4 @@
-public struct CustomMetadata: Codable {
+public struct CustomMetadata: Codable, Sendable {
     public let className: String
     public let external: [String: String]?
 
