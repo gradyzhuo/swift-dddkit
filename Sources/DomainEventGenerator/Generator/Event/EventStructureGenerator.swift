@@ -33,7 +33,7 @@ package struct EventStructureGenerator {
         }
         
         lines.append("\(accessLevel.rawValue) struct \(event.name): \(superProtocolsString) {")
-        lines.append("\(indentation)typealias Metadata = CustomMetadata")
+        lines.append("\(indentation)\(accessLevel.rawValue) typealias Metadata = CustomMetadata")
         lines.append("\(indentation)\(accessLevel.rawValue) var metadata: Metadata?")
         
         properties.forEach {
