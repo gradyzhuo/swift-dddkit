@@ -8,3 +8,12 @@ public struct CustomMetadata: Codable {
     }
 }
 
+extension CustomMetadata {
+    public var operatorId: String?{
+        get {
+            guard let external else { return nil }
+            return external["operatorId"] ?? external["userId"]
+        }
+    }
+}
+

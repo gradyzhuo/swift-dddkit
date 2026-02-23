@@ -25,17 +25,23 @@ package struct EventMapperGenerator {
 
     \(accessLevel.rawValue) init(){}
 
-    \(accessLevel.rawValue) func mapping(eventData: RecordedEvent) throws -> (any DomainEvent)? {
+    \(accessLevel.rawValue) func mapping(recordedEvent: RecordedEvent) throws -> (any DomainEvent)? {
 """)
         
         lines.append("""
-        return switch eventData.mappingClassName {
+        return switch recordedEvent.mappingClassName {
 """)
         
         for eventName in eventNames {
             lines.append("""
         case "\(eventName)":
-            try eventData.decode(to: \(eventName).self)
+            {
+                var event = try recordedEvent.decode(to: \(eventName).self)
+                // handle metadata
+                let decoder = JSONDecoder()
+                event.metadata = try decoder.decode(\(eventName).Metadata.self, from: recordedEvent.customMetadata)
+                return event
+            }()
 """)
         }
         
