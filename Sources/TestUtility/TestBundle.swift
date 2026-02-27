@@ -53,8 +53,8 @@ public actor TestBundle {
     }
     
     fileprivate func clearStream(streamIdentifier: StreamIdentifier) async {
-        _ = try? await self.client.deleteStream(streamIdentifier){ options in
-            options.revision(expected: .any)
+        _ = try? await self.client.streams(specified: streamIdentifier.name).delete {
+            $0.expectedRevision = .any
         }
     }
     
