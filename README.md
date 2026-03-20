@@ -1,296 +1,283 @@
 # DDDKit
 
-#### Swift Package Manager
+**DDDKit** is a Swift framework that brings Domain-Driven Design, Event Sourcing, and CQRS to Server-Side Swift. While the Swift backend ecosystem has grown significantly, the building blocks for production-grade DDD architecture — aggregate roots, event sourcing repositories, CQRS projectors, and event migration — have remained largely absent. DDDKit fills that gap.
 
-The Swift Package Manager is the preferred way to get EventStoreDB. Simply add the package dependency to your Package.swift:
+## Requirements
+
+- Swift 6.0+
+- macOS 15+ / iOS 16+
+- [KurrentDB](https://github.com/gradyzhuo/swift-kurrentdb) (for event persistence)
+
+## Installation
+
+Add the package to your `Package.swift`:
 
 ```swift
 dependencies: [
-  .package(url: "git@github.com:Mendesky/DDDKit.git", from: "0.2.0")
+    .package(url: "https://github.com/gradyzhuo/swift-dddkit.git", from: "2.0.0")
 ]
 ```
-...and depend on "EventStoreDB" in the necessary targets:
+
+Then add `DDDKit` and `KurrentSupport` to your target:
 
 ```swift
 .target(
-  name: ...,
-  dependencies: [.product(name: "DDDKit", package: "DDDKit")]
-]
+    name: "MyTarget",
+    dependencies: [
+        .product(name: "DDDKit", package: "swift-dddkit"),
+        .product(name: "KurrentSupport", package: "swift-dddkit"),
+    ]
+)
 ```
 
-### import 
-```
-import DDDKit
-import KurrentSupport
-```
+## Core Concepts
 
+### 1. Define Domain Events
 
-### event
-```
-struct TestAggregateRootCreated: DomainEvent {
+Events are the source of truth. Every state change is captured as an immutable event.
+
+```swift
+// A creation event
+struct OrderCreated: DomainEvent {
     var id: UUID = .init()
     var occurred: Date = .now
     var aggregateRootId: String
+    let customerId: String
 }
 
-struct TestAggregateRootDeleted: DeletedEvent {
+// A deletion event
+struct OrderCancelled: DeletedEvent {
     var id: UUID = .init()
-
     var occurred: Date = .now
-
     let aggregateRootId: String
-    let aggregateRoot2Id: String
-
-    init(aggregateRootId: String, aggregateRoot2Id: String) {
-        self.aggregateRootId = aggregateRootId
-        self.aggregateRoot2Id = aggregateRoot2Id
-    }
-
 }
-
 ```
 
-### AggregateRoot
-```
-class TestAggregateRoot: AggregateRoot {
-    typealias CreatedEventType = TestAggregateRootCreated
+### 2. Implement an Aggregate Root
 
-    typealias DeletedEventType = TestAggregateRootDeleted
+The aggregate root is the consistency boundary. All state mutations go through `apply(event:)`, which calls `when(happened:)` to update in-memory state.
 
-    typealias ID = String
-    var id: String
-    
-    var metadata: DDDCore.AggregateRootMetadata = .init()
+```swift
+final class Order: AggregateRoot {
+    typealias DeletedEventType = OrderCancelled
 
-    init(id: String){
+    let id: String
+    private(set) var customerId: String = ""
+    var metadata: AggregateRootMetadata = .init()
+
+    init(id: String, customerId: String) throws {
         self.id = id
-        
-        let event = TestAggregateRootCreated(aggregateRootId: id)
-        try? self.apply(event: event)
+        try apply(event: OrderCreated(aggregateRootId: id, customerId: customerId))
     }
 
-    required convenience init?(first firstEvent: TestAggregateRootCreated, other events: [any DDDCore.DomainEvent]) throws {
-        self.init(id: firstEvent.aggregateRootId)
-        try self.apply(events: events)
+    required init?(events: [any DomainEvent]) throws {
+        guard let first = events.first as? OrderCreated else { return nil }
+        self.id = first.aggregateRootId
+        try apply(events: events)
     }
 
-    func when(happened event: some DDDCore.DomainEvent) throws {
-        
-    }
-
-    func markAsDelete() throws {
-        let deletedEvent = DeletedEventType(aggregateRootId: self.id, aggregateRoot2Id: "aggregate2Id")
-        try apply(event: deletedEvent)
-    }
-}
-```
-
-### Event Mapper
-```
-struct Mapper: EventTypeMapper {
-    func mapping(eventData: EventStoreDB.RecordedEvent) throws -> (any DDDCore.DomainEvent)? {
-        return switch eventData.eventType {
-        case "TestAggregateRootCreated":
-            try eventData.decode(to: TestAggregateRootCreated.self)
-        case "TestAggregateRootDeleted":
-            try eventData.decode(to: TestAggregateRootDeleted.self)
+    func when(happened event: some DomainEvent) throws {
+        switch event {
+        case let e as OrderCreated:
+            customerId = e.customerId
         default:
-            nil
+            break
         }
     }
-    
 }
 ```
 
-### Repository
-```
-class TestRepository: EventSourcingRepository {
-    typealias AggregateRootType = TestAggregateRoot
-    typealias StorageCoordinator = KurrentStorageCoordinator<TestAggregateRoot>
+### 3. Implement an Event Mapper
 
-    var coordinator: StorageCoordinator
+The mapper deserializes raw KurrentDB records back into typed domain events.
 
-    init(client: EventStoreDBClient) {
-        self.coordinator = .init(client: client, eventMapper: Mapper())
+```swift
+struct OrderEventMapper: EventTypeMapper {
+    func mapping(eventData: RecordedEvent) throws -> (any DomainEvent)? {
+        switch eventData.eventType {
+        case "OrderCreated":   return try eventData.decode(to: OrderCreated.self)
+        case "OrderCancelled": return try eventData.decode(to: OrderCancelled.self)
+        default:               return nil
+        }
     }
 }
-
 ```
 
-### save aggregateRoot and find
-```
-let testId = "idForTesting"
-let aggregateRoot = TestAggregateRoot(id: testId)
-let repository = try TestRepository()
+### 4. Implement a Repository
 
-try await repository.save(aggregateRoot: aggregateRoot)
+Repositories handle persistence and retrieval through event replay.
 
-let finded = try await repository.find(byId: testId)
-XCTAssertNotNil(finded)
-```
-
-### save aggregateRoot and deleted, should find a nil result
-```
-let testId = "idForTesting"
-let aggregateRoot = TestAggregateRoot(id: testId)
-let repository = try TestRepository()
-
-try await repository.save(aggregateRoot: aggregateRoot)
-
-try await repository.delete(byId: testId)
-
-let finded = try await repository.find(byId: testId)
-XCTAssertNil(finded)
-```
-
-### save aggregateRoot and deleted, should find a nil result with a `forcly` argument. 
-```
-let testId = "idForTesting"
-let aggregateRoot = TestAggregateRoot(id: testId)
-let repository = try TestRepository()
-
-try await repository.save(aggregateRoot: aggregateRoot)
-
-try await repository.delete(byId: testId)
-
-let finded = try await repository.find(byId: testId, forcly: true)
-XCTAssertNotNil(finded)
-```
-
-### Delete Stream from AggregateRootType and id
 ```swift
-//remeber import 
-import TestUtilities
+final class OrderRepository: EventSourcingRepository {
+    typealias AggregateRootType = Order
+    typealias StorageCoordinator = KurrentStorageCoordinator<Order>
 
-var client: EventStoreDBClient = .init(settings: .localhost())
-await client.clearStreams(aggregateRootType: TestAggregateRoot.self, id: "idForTesting") { error in
-    print(error)
+    let coordinator: StorageCoordinator
+
+    init(client: KurrentDBClient) {
+        coordinator = .init(client: client, eventMapper: OrderEventMapper())
+    }
+}
+```
+
+### 5. Save and Find
+
+```swift
+let client = KurrentDBClient(settings: .localhost())
+let repository = OrderRepository(client: client)
+
+// Create and save
+let order = try Order(id: "order-001", customerId: "customer-42")
+try await repository.save(aggregateRoot: order)
+
+// Replay from event stream
+let found = try await repository.find(byId: "order-001")
+
+// Soft delete (marks as deleted, still retrievable with hiddingDeleted: false)
+try await repository.delete(byId: "order-001")
+
+// Hard delete (irreversible — removes the stream)
+try await repository.purge(byId: "order-001")
+```
+
+## CQRS — Projectors and Read Models
+
+For the query side, implement `EventSourcingProjector` to fold events into a read-optimized model.
+
+```swift
+struct OrderSummary: ReadModel {
+    let id: String
+    var customerId: String
+    var status: String
 }
 
-//or
-await client.clearStreams(aggregateRootType: TestAggregateRoot.self, id: "idForTesting")
+final class OrderProjector: EventSourcingProjector {
+    typealias ReadModelType = OrderSummary
+    typealias Input = OrderProjectorInput
+    typealias StorageCoordinator = KurrentStorageCoordinator<Order>
+
+    let coordinator: StorageCoordinator
+
+    init(client: KurrentDBClient) {
+        coordinator = .init(client: client, eventMapper: OrderEventMapper())
+    }
+
+    func buildReadModel(input: Input) throws -> OrderSummary? {
+        OrderSummary(id: input.id, customerId: "", status: "unknown")
+    }
+
+    func apply(readModel: inout OrderSummary, events: [any DomainEvent]) throws {
+        for event in events {
+            switch event {
+            case let e as OrderCreated:
+                readModel.customerId = e.customerId
+                readModel.status = "active"
+            case is OrderCancelled:
+                readModel.status = "cancelled"
+            default:
+                break
+            }
+        }
+    }
+}
 ```
 
-## Plugin
+## Event Migration
 
-Prepare `event-generator-config.yaml` in target folder.
-```yaml
-accessModifier: { internal, package, public }
-aggregateRootName: (Optional) A string to customize generated Protocol of AggregateRoot. 
-dependencies: [optional]
+When event schemas evolve, `MigrationUtility` handles replaying old events through migration handlers without losing history.
+
+```swift
+struct MyMigration: Migration {
+    typealias AggregateRootType = Order
+    var eventMapper: any EventTypeMapper = LegacyOrderEventMapper()
+    var migrationHandlers: [any MigrationHandler] = [
+        OrderCreatedV1ToV2Handler()
+    ]
+}
 ```
 
-e.g.
-```yaml
-accessModifier: package
-aggregateRootName: String?
-dependencies: 
-  - General
-  - Utility
-```
+## Code Generation Plugins
 
+DDDKit includes two SPM build-tool plugins that generate Swift boilerplate at build time.
 
 ### DomainEventGeneratorPlugin
 
-The `DomainEventGeneratorPlugin` help generate swift file of domain events by `event.yaml` in target.
+Generates typed event structs from `event.yaml`.
 
-
-Add `DomainEventGeneratorPlugin` to target configuration in `Package.swift`.
 ```swift
+// Package.swift
 .target(
-    name: "MyExecutable",
-    dependencies: [
-        .product(name: "DDDKit", package: "DDDKit"),
-        ... //other dependencies
-	],
+    name: "MyTarget",
     plugins: [
-        .plugin(name: "DomainEventGeneratorPlugin", package: "DDDKit"),
-        ... //other plugin
+        .plugin(name: "DomainEventGeneratorPlugin", package: "swift-dddkit")
     ]
-),
-
+)
 ```
 
-Prepare `event.yaml` in target folder.
-```yaml
-{event_name}:
-  kind: [optional][default: domainEvent] { createdEvent, deletedEvent, domainEvent} 
-  migration: [Optional]
-    eventType: { event_name_ migration_to }
-  aggregateRootId:
-    alias: { concrete_name }
-  properties:
-    - name: { property_name }
-      type: { String, Int, Float, Double, Date, UUID, Bool, or custom class }
-```
-e.g.
-```yaml
-NewLetterContentEdited:
-  migration:
-    eventType: LetterContentEdited
-  aggregateRootId:
-    alias: quotationId
-  properties:
-    - name: letterId
-      type: String
-    - name: content
-      type: String
-    - name: userId
-      type: String
+`event.yaml` syntax:
 
-QuotationDeleted:
+```yaml
+OrderCreated:
+  kind: createdEvent         # createdEvent | domainEvent | deletedEvent (default: domainEvent)
+  aggregateRootId:
+    alias: orderId           # optional alias for the aggregateRootId property
+  properties:
+    - name: customerId
+      type: String
+    - name: totalAmount
+      type: Double
+
+OrderCancelled:
   kind: deletedEvent
-  migration:
-    eventType: LetterContentEdited
   aggregateRootId:
-    alias: quotationId
-  properties:
-    - name: letterId
-      type: String
-    - name: content
-      type: String
-    - name: userId
-      type: String
+    alias: orderId
+```
+
+Also requires `event-generator-config.yaml`:
+
+```yaml
+accessModifier: public       # internal | package | public
+aggregateRootName: Order     # optional, customizes the generated AggregateRoot protocol name
 ```
 
 ### ProjectionModelGeneratorPlugin
 
-The `ProjectionModelGeneratorPlugin` help generate swift file of projection model and event mapper by `projection-model.yaml` in target.
-
-Add `ProjectionModelGeneratorPlugin ` to target configuration in `Package.swift`.
+Generates `ReadModel` and `EventTypeMapper` boilerplate from `projection-model.yaml`.
 
 ```swift
+// Package.swift
 .target(
-    name: "MyExecutable",
-    dependencies: [
-        .product(name: "DDDKit", package: "DDDKit"),
-        ... //other dependencies
-	],
+    name: "MyTarget",
     plugins: [
-        .plugin(name: "ProjectionModelGeneratorPlugin", package: "DDDKit"),
-        ... //other plugin
+        .plugin(name: "ProjectionModelGeneratorPlugin", package: "swift-dddkit")
     ]
-),
-
+)
 ```
 
-Prepare `projection-model.yaml` in target folder.
+`projection-model.yaml` syntax:
 
 ```yaml
-{model_name}:
- model: {readModel}
- createdEvent: { event_name implemented by DomainEvent }
- deletedEvent: { event_name implemented  by DeletedEvent }
- events: [readModel is required ]
-  - { event_name implemented by DomainEvent }
+OrderSummary:
+  model: readModel
+  createdEvent: OrderCreated
+  deletedEvent: OrderCancelled
+  events:
+    - OrderItemAdded
+    - OrderShipped
 ```
 
-e.g. 
-```yaml
-GetQuotationReadModel:
- model: readModel
- createdEvent: QuotationCreated
- events:
-  - xxxEdited
-  - xxxEdited
-```
+## Modules
+
+| Module | Purpose |
+|--------|---------|
+| `DDDKit` | Umbrella import |
+| `DDDCore` | Core protocols: `Entity`, `AggregateRoot`, `DomainEvent`, `DomainEventBus` |
+| `EventSourcing` | Abstract patterns: `EventStorageCoordinator`, `EventSourcingRepository`, `EventSourcingProjector` |
+| `KurrentSupport` | KurrentDB adapter: `KurrentStorageCoordinator`, `EventTypeMapper` |
+| `EventBus` | In-memory event bus for local event distribution |
+| `MigrationUtility` | Event schema migration framework |
+| `TestUtility` | Test helpers: `TestBundle`, stream cleanup utilities |
+
+## License
+
+MIT
