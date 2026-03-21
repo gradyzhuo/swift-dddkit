@@ -84,11 +84,14 @@ let package = Package(
             name: "DDDCoreTests",
             dependencies: ["DDDKit", "TestUtility"]
         ),
-        
-            .testTarget(
-                name: "EventSourcingTests",
-                dependencies: ["DDDKit", "EventSourcing", "TestUtility"]
-            ),
+        .testTarget(
+            name: "EventSourcingTests",
+            dependencies: ["DDDKit", "EventSourcing", "TestUtility"]
+        ),
+        .testTarget(
+            name: "DDDKitUnitTests",
+            dependencies: ["DDDCore", "EventSourcing", "EventBus"]
+        ),
         .target(name: "DomainEventGenerator",
                 dependencies: [
                     .product(name: "Yams", package: "yams")
