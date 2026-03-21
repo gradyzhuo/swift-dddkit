@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol Output: Sendable, Codable {
+public protocol UseCaseOutput: Sendable, Codable {
     var id: String? { get }
     var message: String? { get }
 }

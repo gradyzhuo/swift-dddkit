@@ -34,7 +34,7 @@ extension DDDError {
 // MARK: - Define errors with enum-like.
 
 extension DDDError {
-    public static func executeUsecaseFailed(usecase: any Usecase, input: any Input, userInfos: [String: Sendable]? = nil) -> Self {
+    public static func executeUsecaseFailed(usecase: any Usecase, input: any UseCaseInput, userInfos: [String: Sendable]? = nil) -> Self {
         let errorCode = DDDError.Code.usecaseExecutionFailure
         let message = "[\(errorCode)] The error happened with executing usecase \(usecase) by input: \(input). "
         let useInfos = userInfos ?? [:]

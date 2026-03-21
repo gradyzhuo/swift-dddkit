@@ -1,8 +1,8 @@
 import Foundation
 
-public protocol Usecase<I, O> {
-    associatedtype I: Input
-    associatedtype O: Output
+public protocol Usecase<Input, Output> {
+    associatedtype Input: UseCaseInput
+    associatedtype Output: UseCaseOutput
 
-    func execute(input: I) async throws -> O
+    func execute(input: Input) async throws -> Output
 }

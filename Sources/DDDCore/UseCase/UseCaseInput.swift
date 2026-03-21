@@ -7,4 +7,4 @@
 
 import Foundation
 
-public protocol Input: Sendable {}
+public protocol UseCaseInput: Sendable {}
