@@ -87,6 +87,18 @@ The `generate` executable (`Sources/generate/`) is the shared CLI. `DomainEventG
 5. `repository.save(aggregateRoot:)` — appends uncommitted events from `metadata` to KurrentDB
 6. `repository.find(byId:)` — replays all events from KurrentDB through `when(happened:)` to reconstruct state
 
+## TODO
+
+- **`RestorableAggregateRoot`** — 支援刪除後還原的 aggregate 協定。設計：
+  - 新增 `RestoredEvent` 協定（對稱 `DeletedEvent`），要求 `init(id:aggregateRootId:occurred:)`
+  - 新增 `RestorableAggregateRoot: AggregateRoot`，帶有 `associatedtype RestoredEventType: RestoredEvent`
+  - 覆寫 `apply(event:)` guard 為 `!metadata.deleted || event is RestoredEventType`
+  - 提供 `markRestore()` 預設實作（對稱 `markDelete()`）
+  - `AggregateRootMetadata` 新增 `restore()` 方法（將 `deleted` 設回 `false`）
+  - 基礎 `AggregateRoot.apply` 維持嚴格 `guard !metadata.deleted`，不受影響
+
+- **`EventSourcingRepository.find(hiddingDeleted: false)`** — 目前重建邏輯有 bug：`init?(events:)` 重播 `DeletedEvent` 後 `deleted = true`，若之後又呼叫 `markDelete()` 會拋錯。需修正 find 的還原流程，不應在重建後額外呼叫 `markDelete()`。
+
 ### Migration
 
 `MigrationUtility` provides the `Migration` protocol for evolving event schemas. Accepts an old `EventTypeMapper` and an array of `MigrationHandler`s. Supports custom `createdHandler` for reconstructing aggregates from migrated event streams.
