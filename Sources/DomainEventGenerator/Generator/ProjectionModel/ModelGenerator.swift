@@ -8,7 +8,7 @@
 import Foundation
 import Yams
 
-package struct ProjectionModelGenerator {
+package struct ModelGenerator {
     package let aggregateRootGenerator: AggregateRootGenerator
     package let projectorGenerator: ProjectorGenerator
     
@@ -27,6 +27,6 @@ package struct ProjectionModelGenerator {
 }
 
 
-enum ProjectionModelGeneratorError: Error{
+enum ModelGeneratorError: Error{
     case invalidCreatedEvent
 }

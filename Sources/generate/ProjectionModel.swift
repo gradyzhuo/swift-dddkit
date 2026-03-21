@@ -47,7 +47,7 @@ struct GenerateModelCommand: ParsableCommand {
         
         let aggregateRootGenerator = try AggregateRootGenerator(aggregateRootName: aggregateRootName, aggregateEventsYamlFileURL: .init(filePath: eventDefinitionPath))
         
-        let generator = try ProjectionModelGenerator(projectionModelYamlFileURL: .init(filePath: projectionModelDefinitionPath), aggregateRootName: aggregateRootName, aggregateEventsYamlFileURL: .init(filePath: eventDefinitionPath))
+        let generator = try ModelGenerator(projectionModelYamlFileURL: .init(filePath: projectionModelDefinitionPath), aggregateRootName: aggregateRootName, aggregateEventsYamlFileURL: .init(filePath: eventDefinitionPath))
     
         guard let outputPath = output else {
             throw GenerateCommand.Errors.outputPathMissing
