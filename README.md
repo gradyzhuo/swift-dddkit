@@ -1,6 +1,6 @@
-# DDDKit
+# swift-ddd-kit
 
-**DDDKit** is a Swift framework that brings Domain-Driven Design, Event Sourcing, and CQRS to Server-Side Swift. While the Swift backend ecosystem has grown significantly, the building blocks for production-grade DDD architecture — aggregate roots, event sourcing repositories, CQRS projectors, and event migration — have remained largely absent. DDDKit fills that gap.
+**swift-ddd-kit** is a Swift framework that brings Domain-Driven Design, Event Sourcing, and CQRS to Server-Side Swift. While the Swift backend ecosystem has grown significantly, the building blocks for production-grade DDD architecture — aggregate roots, event sourcing repositories, CQRS projectors, and event migration — have remained largely absent. swift-ddd-kit fills that gap.
 
 ## Requirements
 
@@ -198,7 +198,7 @@ struct MyMigration: Migration {
 
 ## Code Generation Plugins
 
-DDDKit includes two SPM build-tool plugins that generate Swift boilerplate at build time.
+swift-ddd-kit includes two SPM build-tool plugins that generate Swift boilerplate at build time.
 
 ### DomainEventGeneratorPlugin
 
