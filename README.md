@@ -14,7 +14,7 @@ Add the package to your `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/gradyzhuo/swift-dddkit.git", from: "0.1.1")
+    .package(url: "https://github.com/gradyzhuo/swift-ddd-kit.git", from: "0.1.1")
 ]
 ```
 
@@ -24,8 +24,8 @@ Then add `DDDKit` and `KurrentSupport` to your target:
 .target(
     name: "MyTarget",
     dependencies: [
-        .product(name: "DDDKit", package: "swift-dddkit"),
-        .product(name: "KurrentSupport", package: "swift-dddkit"),
+        .product(name: "DDDKit", package: "swift-ddd-kit"),
+        .product(name: "KurrentSupport", package: "swift-ddd-kit"),
     ]
 )
 ```
@@ -209,7 +209,7 @@ Generates typed event structs from `event.yaml`.
 .target(
     name: "MyTarget",
     plugins: [
-        .plugin(name: "DomainEventGeneratorPlugin", package: "swift-dddkit")
+        .plugin(name: "DomainEventGeneratorPlugin", package: "swift-ddd-kit")
     ]
 )
 ```
@@ -249,7 +249,7 @@ Generates `ReadModel` and `EventTypeMapper` boilerplate from `projection-model.y
 .target(
     name: "MyTarget",
     plugins: [
-        .plugin(name: "ProjectionModelGeneratorPlugin", package: "swift-dddkit")
+        .plugin(name: "ProjectionModelGeneratorPlugin", package: "swift-ddd-kit")
     ]
 )
 ```

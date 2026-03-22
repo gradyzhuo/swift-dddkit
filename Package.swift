@@ -4,7 +4,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "swift-dddkit",
+    name: "swift-ddd-kit",
     platforms: [
         .macOS(.v15),
         .iOS(.v16),
