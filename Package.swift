@@ -55,6 +55,7 @@ let package = Package(
             name: "EventSourcing",
             dependencies: [
                 "DDDCore",
+                .product(name: "Logging", package: "swift-log"),
             ]),
         .target(
             name: "KurrentSupport",
