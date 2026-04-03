@@ -12,6 +12,10 @@ public struct PostgresJSONReadModelStore<Model: ReadModel & Sendable>: ReadModel
     private let tableName: String
 
     public init(client: PostgresClient, tableName: String = "read_model_snapshots") {
+        precondition(
+            tableName.range(of: #"^[a-zA-Z_][a-zA-Z0-9_$]*$"#, options: .regularExpression) != nil,
+            "tableName must be a valid SQL identifier (letters, digits, underscores, dollar signs; must start with a letter or underscore)"
+        )
         self.client = client
         self.typeName = String(describing: Model.self)
         self.tableName = tableName
