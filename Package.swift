@@ -93,6 +93,7 @@ let package = Package(
             name: "ReadModelPersistencePostgres",
             dependencies: [
                 "ReadModelPersistence",
+                "EventSourcing",
                 .product(name: "PostgresNIO", package: "postgres-nio"),
             ]),
         .testTarget(
@@ -100,6 +101,7 @@ let package = Package(
             dependencies: [
                 "ReadModelPersistencePostgres",
                 "ReadModelPersistence",
+                "EventSourcing",
                 .product(name: "PostgresNIO", package: "postgres-nio"),
             ]),
         .target(name: "MigrationUtility",
