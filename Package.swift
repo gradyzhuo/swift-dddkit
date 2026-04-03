@@ -99,6 +99,7 @@ let package = Package(
             name: "ReadModelPersistencePostgresIntegrationTests",
             dependencies: [
                 "ReadModelPersistencePostgres",
+                "ReadModelPersistence",
                 .product(name: "PostgresNIO", package: "postgres-nio"),
             ]),
         .target(name: "MigrationUtility",
