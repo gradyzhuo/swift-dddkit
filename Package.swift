@@ -126,6 +126,12 @@ let package = Package(
             name: "ReadModelPersistenceTests",
             dependencies: ["ReadModelPersistence", "DDDCore", "EventSourcing"]
         ),
+        .testTarget(
+            name: "DomainEventGeneratorTests",
+            dependencies: [
+                "DomainEventGenerator",
+                .product(name: "Yams", package: "yams"),
+            ]),
         .target(name: "DomainEventGenerator",
                 dependencies: [
                     .product(name: "Yams", package: "yams")
