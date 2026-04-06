@@ -12,8 +12,9 @@ import DomainEventGenerator
 struct GenerateModelCommand: ParsableCommand {
     
     static let configuration = CommandConfiguration(
-        commandName: "presenter",
-        abstract: "Generate presenter protocol swift files.")
+        commandName: "projector",
+        abstract: "Generate projector protocol swift files.",
+        aliases: ["presenter"])
     
     @Option(name: .customLong("events"),completion: .file(extensions: ["yaml", "yam"]))
     var eventDefinitionPath: String

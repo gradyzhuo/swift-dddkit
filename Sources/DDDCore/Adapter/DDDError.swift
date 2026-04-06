@@ -24,11 +24,15 @@ extension DDDError {
         case undefined = 900
         case usecaseExecutionFailure = 101
         case aggregateNotFound = 201
-        case presenterConstructionFailed = 301
+        case projectorConstructionFailed = 301
         case aggregateOperationNotAllowed = 202
         case eventsNotFound = 401
-        
     }
+}
+
+extension DDDError.Code {
+    @available(*, deprecated, renamed: "projectorConstructionFailed")
+    public static var presenterConstructionFailed: Self { .projectorConstructionFailed }
 }
 
 // MARK: - Define errors with enum-like.
@@ -60,21 +64,31 @@ extension DDDError {
         return .init(code: errorCode, message: message, userInfos: userInfos)
     }
     
-    public static func eventsNotFoundInPresenter(operation: String, presenterType: String, userInfos: [String: Sendable]? = nil) -> Self {
+    public static func eventsNotFoundInProjector(operation: String, projectorType: String, userInfos: [String: Sendable]? = nil) -> Self {
         let errorCode = DDDError.Code.eventsNotFound
-        let reason = "events not found to build readModel in presenter \(presenterType)"
+        let reason = "events not found to build readModel in projector \(projectorType)"
         let message = "[\(errorCode)] `\(operation)` not allowed, because \(reason)."
         var userInfos = userInfos ?? [:]
         userInfos["operation"] = operation
         userInfos["reason"] = reason
         return .init(code: errorCode, message: message, userInfos: userInfos)
     }
-    
-    public static func presenterOperationFailed(presenterType: String, id: String, reason: String, userInfos: [String: Sendable]? = nil) -> Self {
-        let errorCode = DDDError.Code.presenterConstructionFailed
-        let message = "[\(errorCode)] It's failed in \(presenterType):\(id), because \(reason)."
+
+    @available(*, deprecated, renamed: "eventsNotFoundInProjector(operation:projectorType:userInfos:)")
+    public static func eventsNotFoundInPresenter(operation: String, presenterType: String, userInfos: [String: Sendable]? = nil) -> Self {
+        eventsNotFoundInProjector(operation: operation, projectorType: presenterType, userInfos: userInfos)
+    }
+
+    public static func projectorOperationFailed(projectorType: String, id: String, reason: String, userInfos: [String: Sendable]? = nil) -> Self {
+        let errorCode = DDDError.Code.projectorConstructionFailed
+        let message = "[\(errorCode)] It's failed in \(projectorType):\(id), because \(reason)."
         var userInfos = userInfos ?? [:]
         userInfos["reason"] = reason
         return .init(code: errorCode, message: message, userInfos: userInfos)
+    }
+
+    @available(*, deprecated, renamed: "projectorOperationFailed(projectorType:id:reason:userInfos:)")
+    public static func presenterOperationFailed(presenterType: String, id: String, reason: String, userInfos: [String: Sendable]? = nil) -> Self {
+        projectorOperationFailed(projectorType: presenterType, id: id, reason: reason, userInfos: userInfos)
     }
 }

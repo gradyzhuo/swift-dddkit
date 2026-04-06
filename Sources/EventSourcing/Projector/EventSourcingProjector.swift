@@ -29,7 +29,7 @@ extension EventSourcingProjector {
         get{
             return switch categoryRule {
             case .fromClass(let prefix):
-                "\(prefix)\(Self.self)".replacing("Presenter", with: "")
+                "\(prefix)\(Self.self)".replacing("Presenter", with: "").replacing("Projector", with: "")
             case .custom(let customCategory):
                 customCategory
             }
@@ -42,7 +42,7 @@ extension EventSourcingProjector {
         }
         
         guard fetechedResult.events.count > 0 else {
-            throw DDDError.eventsNotFoundInPresenter(operation: "buildReadModel", presenterType: "\(Self.self)")
+            throw DDDError.eventsNotFoundInProjector(operation: "buildReadModel", projectorType: "\(Self.self)")
         }
         
         do{

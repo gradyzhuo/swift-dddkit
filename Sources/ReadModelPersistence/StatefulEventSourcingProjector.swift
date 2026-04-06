@@ -49,9 +49,9 @@ extension StatefulEventSourcingProjector {
             }
 
             guard !fetchedResult.events.isEmpty else {
-                throw DDDError.eventsNotFoundInPresenter(
+                throw DDDError.eventsNotFoundInProjector(
                     operation: "buildReadModel",
-                    presenterType: "\(Self.self)"
+                    projectorType: "\(Self.self)"
                 )
             }
 

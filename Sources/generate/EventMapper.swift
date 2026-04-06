@@ -48,7 +48,7 @@ struct GenerateEventMapperCommand: ParsableCommand {
         let aggregateEventsYamlFileURL = URL.init(filePath: eventDefinitionPath)
         let aggregateRootGenerator = try AggregateRootGenerator(aggregateRootName: aggregateRootName, aggregateEventsYamlFileURL: aggregateEventsYamlFileURL)
     
-        let presenterGenerator = try ProjectorGenerator(projectionModelYamlFileURL: .init(filePath: projectionModelDefinitionPath))
+        let projectorGenerator = try ProjectorGenerator(projectionModelYamlFileURL: .init(filePath: projectionModelDefinitionPath))
 //        let projectionModelGenerator = try ProjectionModelGenerator(projectionModelYamlFileURL: .init(filePath: projectionModelDefinitionPath), aggregateRootName: aggregateRootName, aggregateEventsYamlFileURL: .init(filePath: eventDefinitionPath))
         
         guard let outputPath = output else {
@@ -77,7 +77,7 @@ struct GenerateEventMapperCommand: ParsableCommand {
         
         
         
-        for (modelName, projectionModelDefinition) in presenterGenerator.definitions {
+        for (modelName, projectionModelDefinition) in projectorGenerator.definitions {
             var eventNames = projectionModelDefinition.events
             eventNames.append(contentsOf: projectionModelDefinition.createdEvents)
             if let deletedEvent = projectionModelDefinition.deletedEvent {
