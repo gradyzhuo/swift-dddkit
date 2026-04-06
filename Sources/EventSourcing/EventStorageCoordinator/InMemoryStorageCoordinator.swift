@@ -26,6 +26,14 @@ public actor InMemoryStorageCoordinator: EventStorageCoordinator {
         return newRevision
     }
 
+    public func fetchEvents(byId id: String, afterRevision revision: UInt64) async throws -> (events: [any DomainEvent], latestRevision: UInt64)? {
+        guard let entry = store[id] else { return nil }
+        let startIndex = Int(revision)
+        guard startIndex <= entry.events.count else { return nil }
+        let newEvents = Array(entry.events[startIndex...])
+        return (events: newEvents, latestRevision: entry.revision)
+    }
+
     public func purge(byId id: String) async throws {
         store.removeValue(forKey: id)
     }

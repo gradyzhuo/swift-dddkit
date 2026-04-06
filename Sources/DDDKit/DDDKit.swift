@@ -2,5 +2,6 @@
 @_exported import KurrentSupport
 @_exported import EventSourcing
 @_exported import EventBus
+@_exported import ReadModelPersistence
 
 

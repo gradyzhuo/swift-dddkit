@@ -85,6 +85,50 @@ public class KurrentStorageCoordinator<StreamNaming: EventStreamNaming>: EventSt
         }
     }
     
+    public func fetchEvents(byId id: String, afterRevision revision: UInt64) async throws -> (events: [any DomainEvent], latestRevision: UInt64)? {
+        let streamName = StreamNaming.getStreamName(id: id)
+        do {
+            let stream = client.streams(specified: streamName)
+            let recordEvents = try await stream.read {
+                $0.direction = .forward
+                $0.revision = .specified(revision + 1)
+                $0.resolveLinks = true
+            }.map { response in
+                try response.event.record
+            }.reduce(.init()) { partialResult, event in
+                return partialResult + [event]
+            }
+
+            let eventWrappers: [EventWrapped] = recordEvents.reduce(into: .init()) {
+                do {
+                    guard let event = try self.eventMapper.mapping(eventData: $1) else {
+                        return
+                    }
+                    $0.append(.init(event: event, revision: $1.revision))
+                } catch {
+                    logger.warning("skipped event cause error happened. error: \(error)")
+                    return
+                }
+            }
+
+            guard let latestRevision = eventWrappers.last?.revision else {
+                return (events: [], latestRevision: revision)
+            }
+
+            let sortedEvents = eventWrappers.map(\.event).sorted {
+                $0.occurred < $1.occurred
+            }
+
+            return (events: sortedEvents, latestRevision: latestRevision)
+        } catch KurrentError.resourceNotFound(let reason) {
+            logger.warning("Skip an error happened in esdb, with reason: \(reason)")
+            return nil
+        } catch {
+            logger.error("The error happened when fetching events: \(error)")
+            throw error
+        }
+    }
+
     public func purge(byId id: String) async throws {
         let streamName = StreamNaming.getStreamName(id: id)
         try await self.client.streams(specified: streamName).delete()
