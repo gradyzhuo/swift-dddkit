@@ -85,8 +85,9 @@ extension Event {
                     }
                     // Deprecated: if any property uses ", index" syntax, sort by index and warn.
                     if items.contains(where: { $0.index != nil }) {
-                        fputs("warning: [DomainEventGenerator] \"Type, index\" syntax in properties is deprecated. " +
-                              "Write properties in the desired order and omit the index.\n", stderr)
+                        let msg = "warning: [DomainEventGenerator] \"Type, index\" syntax in properties is deprecated. " +
+                                  "Write properties in the desired order and omit the index.\n"
+                        FileHandle.standardError.write(Data(msg.utf8))
                         let sorted = items.sorted {
                             guard let l = $0.index, let r = $1.index else { return false }
                             return l < r
