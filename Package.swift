@@ -34,7 +34,10 @@ let package = Package(
        ]),
        .plugin(name: "ModelGeneratorPlugin", targets: [
            "ModelGeneratorPlugin"
-       ])
+       ]),
+       .plugin(name: "GenerateKurrentDBProjectionsPlugin", targets: [
+           "GenerateKurrentDBProjectionsPlugin"
+       ]),
     ],
     dependencies: [
         .package(url: "https://github.com/gradyzhuo/swift-kurrentdb.git", from: "2.0.0"),
@@ -165,6 +168,19 @@ let package = Package(
           dependencies: [
             "generate"
           ]),
-        
+        .plugin(
+          name: "GenerateKurrentDBProjectionsPlugin",
+          capability: .command(
+            intent: .custom(
+                verb: "generate-kurrentdb-projections",
+                description: "Generate KurrentDB .js projection files from projection-model.yaml"),
+            permissions: [
+                PluginPermission.writeToPackageDirectory(
+                    reason: "Writes generated KurrentDB projection .js files to the projections/ directory.")
+            ]),
+          dependencies: [
+            "generate",
+          ]),
+
     ]
 )
