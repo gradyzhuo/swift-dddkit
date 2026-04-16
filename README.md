@@ -23,39 +23,38 @@ Write and Read are fully independent — they share no direct coupling. Both rea
 <summary>ASCII version</summary>
 
 ```
- ┌─────────────────────────────────────┬──────────────────────────────────────┐
+ ┌─────────────────────── FRAMEWORKS & DRIVERS ───────────────────────────────┐
+ │         KurrentDB                              PostgreSQL / Memory         │
+ │        (Event Store)                            (Read Store)               │
+ └──────────────┬───────────────────────────────────────────────┬─────────────┘
+                │ ↑ appends           reads events ↓ ───────►   │ ↑ persists
+ ┌──────────────┴──────────────────────┬────────────────────────┴─────────────┐
  │     WRITE SIDE (Command)            │     READ SIDE (Query)                │
  ├─────────────────────────────────────┼──────────────────────────────────────┤
- │ INTERFACE                           │ INTERFACE                            │
- │   Command Handler                   │   Query Handler                      │
+ │ INTERFACE ADAPTERS                  │ INTERFACE ADAPTERS                   │
+ │   Command Handler  (Controller)     │   Query Handler  (Presenter)         │
+ │   KurrentStorageCoordinator(Gateway)│   KurrentStorageCoordinator(Gateway) │
+ │                                     │   ReadModelStore  (Gateway)          │
  ├─────────────────────────────────────┼──────────────────────────────────────┤
- │ APPLICATION                         │ APPLICATION                          │
+ │ USE CASES                           │ USE CASES                            │
  │   Usecase                           │   EventSourcingProjector             │
  │   EventSourcingRepository           │   ├─ buildReadModel(input:)          │
- │                                     │   └─ apply(readModel:events:)        │
+ │   EventTypeMapper  (Adapter)        │   └─ apply(readModel:events:)        │
  │                                     │   StatefulProjector                  │
+ │                                     │   EventTypeMapper  (Adapter)         │
  ├─────────────────────────────────────┼──────────────────────────────────────┤
- │ DOMAIN  (DDDCore)                   │ DOMAIN  (DDDCore)                    │
+ │ ENTITIES  (DDDCore)                 │ ENTITIES  (DDDCore)                  │
  │   AggregateRoot                     │   ReadModel                          │
  │   ├─ when(happened:)                │   └─ id (Codable)                    │
  │   ├─ apply(event:)                  │                                      │
  │   └─ ensureInvariant()              │                                      │
  │   DomainEvent                       │                                      │
- ├─────────────────────────────────────┼──────────────────────────────────────┤
- │ INFRASTRUCTURE (KurrentSupport)     │ INFRASTRUCTURE (ReadModelPersistence)│
- │   KurrentStorageCoordinator         │   KurrentStorageCoordinator          │
- │   EventTypeMapper                   │   EventTypeMapper                    │
- │                                     │   ReadModelStore                     │
- └──────────────┬──────────────────────┴──────────────────┬───────────────────┘
-                │ appends                                 ▲         │ persists
-                ▼              reads events               │         ▼
-            KurrentDB ────────────────────────────────────┘   PostgreSQL / Memory
-           (Event Store)                             (Read Store)
+ └─────────────────────────────────────┴──────────────────────────────────────┘
 ```
 
 </details>
 
-> Dependency direction follows Clean Architecture: all modules depend inward toward the Domain layer. Infrastructure implements Domain-defined protocols via Dependency Inversion.
+> Dependency direction follows Clean Architecture: all layers depend inward toward Entities. Interface Adapters (Gateways) implement protocols defined in Use Cases/Entities — never the reverse.
 
 ## Flow
 
