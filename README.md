@@ -396,7 +396,7 @@ Generates KurrentDB server-side projection `.js` files from `projection-model.ya
 Unlike the build-tool plugins above, this is a **Command Plugin** — you run it on demand:
 
 ```bash
-swift package generate-kurrentdb-projections \
+swift package --allow-writing-to-directory generate-kurrentdb-projections \
   path/to/projection-model.yaml \
   --output projections/
 ```
@@ -404,7 +404,7 @@ swift package generate-kurrentdb-projections \
 Or use the CLI directly:
 
 ```bash
-swift run generate kurrentdb-projection \
+swift run generate --allow-writing-to-directory kurrentdb-projection \
   path/to/projection-model.yaml \
   --output projections/
 ```
