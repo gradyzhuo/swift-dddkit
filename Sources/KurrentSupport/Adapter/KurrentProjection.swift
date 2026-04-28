@@ -8,7 +8,7 @@
 
 import KurrentDB
 import Logging
-import os.lock
+import Synchronization
 import EventSourcing
 import ReadModelPersistence
 
@@ -72,11 +72,6 @@ import ReadModelPersistence
 /// Phase 2. Phase 1 provides at-least-once delivery + projector-level idempotency only.
 public enum KurrentProjection {
 
-    /// Disambiguates `Logger`: importing `os.lock` (for `OSAllocatedUnfairLock`)
-    /// transitively exposes `os.Logger`, which collides with `Logging.Logger`.
-    /// Nested name lookup inside this enum resolves bare `Logger` to swift-log.
-    public typealias Logger = Logging.Logger
-
     public enum NackAction: Sendable, Equatable {
         case retry
         case skip
@@ -118,7 +113,7 @@ public enum KurrentProjection {
 
         // Registrations are appended via `register` (chainable, sync) and read by `run()`.
         // Convention: register before run. Lock is defensive, not for concurrent register/run.
-        private let _registrations = OSAllocatedUnfairLock<[Registration]>(initialState: [])
+        private let _registrations = Mutex<[Registration]>([])
 
         public init(
             client: KurrentDBClient,
