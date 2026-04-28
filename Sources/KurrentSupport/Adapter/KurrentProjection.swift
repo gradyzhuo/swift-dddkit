@@ -8,9 +8,14 @@
 
 import KurrentDB
 import Logging
-import os
+import os.lock
 
 public enum KurrentProjection {
+
+    /// Disambiguates `Logger`: importing `os.lock` (for `OSAllocatedUnfairLock`)
+    /// transitively exposes `os.Logger`, which collides with `Logging.Logger`.
+    /// Nested name lookup inside this enum resolves bare `Logger` to swift-log.
+    public typealias Logger = Logging.Logger
 
     public enum NackAction: Sendable, Equatable {
         case retry
@@ -49,7 +54,7 @@ public enum KurrentProjection {
         private let stream: String
         private let groupName: String
         private let retryPolicy: any RetryPolicy
-        private let logger: Logging.Logger
+        private let logger: Logger
 
         // Registrations are appended via `register` (chainable, sync) and read by `run()`.
         // Convention: register before run. Lock is defensive, not for concurrent register/run.
@@ -60,7 +65,7 @@ public enum KurrentProjection {
             stream: String,
             groupName: String,
             retryPolicy: any RetryPolicy = MaxRetriesPolicy(max: 5),
-            logger: Logging.Logger = Logging.Logger(label: "KurrentProjection.PersistentSubscriptionRunner")
+            logger: Logger = Logger(label: "KurrentProjection.PersistentSubscriptionRunner")
         ) {
             self.client = client
             self.stream = stream
