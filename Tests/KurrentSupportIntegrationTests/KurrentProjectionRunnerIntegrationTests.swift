@@ -120,11 +120,13 @@ struct KurrentProjectionRunnerFailureTests {
 
         let task = Task { try await runner.run() }
 
-        // Poll up to 8 seconds for at least 3 retries (initial + 2 retries before policy says skip).
-        let deadline = Date().addingTimeInterval(8.0)
+        // Poll up to 3 seconds for at least 3 retries (initial + 2 retries before policy says skip).
+        // The tight deadline distinguishes nack-driven retry (sub-second per retry) from
+        // KurrentDB's server-side message-timeout-driven retry (30+ seconds per retry).
+        let deadline = Date().addingTimeInterval(3.0)
         while Date() < deadline {
             if callCount.withLock({ $0 }) >= 3 { break }
-            try await Task.sleep(for: .milliseconds(200))
+            try await Task.sleep(for: .milliseconds(100))
         }
 
         task.cancel()
