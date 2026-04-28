@@ -176,3 +176,34 @@ struct KurrentProjectionRunnerStopTests {
         }
     }
 }
+
+@Suite("KurrentProjection.PersistentSubscriptionRunner — cancellation", .serialized)
+struct KurrentProjectionRunnerCancellationTests {
+
+    @Test("External Task.cancel() returns normally without throwing")
+    func cancelReturnsNormally() async throws {
+        let client = KurrentDBClient.makeIntegrationTestClient()
+        let groupName = "test-runner-cancel-\(UUID().uuidString.prefix(8))"
+        let category = "RunnerCancelTest\(UUID().uuidString.prefix(6))"
+        let stream = "$ce-\(category)"
+
+        try await client.persistentSubscriptions(stream: stream, group: groupName).create { options in
+            options.settings.resolveLink = true
+        }
+        defer { Task { try? await client.persistentSubscriptions(stream: stream, group: groupName).delete() } }
+
+        let runner = KurrentProjection.PersistentSubscriptionRunner(
+            client: client,
+            stream: stream,
+            groupName: groupName
+        )
+
+        let task = Task { try await runner.run() }
+        try await Task.sleep(for: .milliseconds(500))
+        task.cancel()
+
+        // run() should complete without throwing.
+        // .value will rethrow if the task threw.
+        _ = try await task.value
+    }
+}
