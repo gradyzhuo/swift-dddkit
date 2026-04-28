@@ -1,6 +1,6 @@
 import Testing
 import KurrentDB
-import KurrentSupport
+@testable import KurrentSupport
 
 @Suite("KurrentProjection.PersistentSubscriptionRunner — setup")
 struct KurrentProjectionRunnerSetupTests {
@@ -27,5 +27,21 @@ struct KurrentProjectionRunnerSetupTests {
             retryPolicy: KurrentProjection.MaxRetriesPolicy(max: 3)
         )
         let _: any Sendable = runner
+    }
+
+    @Test("register low-level overload is chainable and counts registrations")
+    func lowLevelRegisterChains() {
+        let client = KurrentDBClient(settings: .localhost())
+        let runner = KurrentProjection.PersistentSubscriptionRunner(
+            client: client,
+            stream: "$ce-Test",
+            groupName: "test-group"
+        )
+        let returned = runner
+            .register(extractInput: { _ -> Int? in 1 }, execute: { _ in })
+            .register(extractInput: { _ -> String? in nil }, execute: { _ in })
+
+        #expect(returned === runner) // Same instance
+        #expect(runner.registrationCount == 2)
     }
 }

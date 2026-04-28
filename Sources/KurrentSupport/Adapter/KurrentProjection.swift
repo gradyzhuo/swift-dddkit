@@ -73,6 +73,25 @@ public enum KurrentProjection {
             self.retryPolicy = retryPolicy
             self.logger = logger
         }
+
+        @discardableResult
+        public func register<Input: Sendable>(
+            extractInput: @Sendable @escaping (RecordedEvent) -> Input?,
+            execute: @Sendable @escaping (Input) async throws -> Void
+        ) -> Self {
+            let registration = Registration { record in
+                guard let input = extractInput(record) else { return }
+                try await execute(input)
+            }
+            _registrations.withLock { $0.append(registration) }
+            return self
+        }
+
+        // Test-only — used by unit tests to verify register chaining.
+        // Internal access; not part of the public API.
+        internal var registrationCount: Int {
+            _registrations.withLock { $0.count }
+        }
     }
 
     fileprivate struct Registration: Sendable {
