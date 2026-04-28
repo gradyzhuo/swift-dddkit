@@ -8,26 +8,9 @@ import Logging
 @Suite("KurrentProjection.PersistentSubscriptionRunner — happy path", .serialized)
 struct KurrentProjectionRunnerHappyPathTests {
 
-    private static func makeClient() -> KurrentDBClient {
-        // The plan was written for an insecure single-node setup, but the
-        // running environment is a 3-node TLS-secured cluster (kurrentdb 26.0)
-        // exposed on localhost ports 2111/2112/2113. Use seed-cluster discovery
-        // with TLS verification disabled (self-signed dev certs).
-        let settings = ClientSettings(
-            clusterMode: .seeds([
-                .init(host: "localhost", port: 2111),
-                .init(host: "localhost", port: 2112),
-                .init(host: "localhost", port: 2113),
-            ]),
-            secure: true,
-            tlsVerifyCert: false
-        ).authenticated(.credentials(username: "admin", password: "changeit"))
-        return KurrentDBClient(settings: settings)
-    }
-
     @Test("Runner dispatches event to all registered projectors and acks")
     func dispatchesAndAcks() async throws {
-        let client = Self.makeClient()
+        let client = KurrentDBClient.makeIntegrationTestClient()
         let groupName = "test-runner-happy-\(UUID().uuidString.prefix(8))"
         let category = "RunnerHappyTest\(UUID().uuidString.prefix(6))"
         let stream = "$ce-\(category)"
@@ -64,9 +47,16 @@ struct KurrentProjectionRunnerHappyPathTests {
             captured.withLock { $0.append(streamName) }
         })
 
-        // Run the runner in a background task; cancel after a short window.
+        // Run the runner in a background task; cancel as soon as the event is observed.
         let task = Task { try await runner.run() }
-        try await Task.sleep(for: .seconds(2))
+
+        // Poll up to 4 seconds for the event to arrive.
+        let deadline = Date().addingTimeInterval(4.0)
+        while Date() < deadline {
+            if !captured.withLock({ $0.isEmpty }) { break }
+            try await Task.sleep(for: .milliseconds(100))
+        }
+
         task.cancel()
         _ = try? await task.value
 

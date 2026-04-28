@@ -130,6 +130,10 @@ public enum KurrentProjection {
         /// Returns when the parent `Task` is cancelled. Throws on subscription
         /// connection failure (no auto-reconnect — caller must restart via
         /// ServiceGroup or similar).
+        ///
+        /// Cancellation is observed between events, not mid-dispatch — once an event
+        /// enters `dispatch(record:)` it runs to completion (or until the registered
+        /// closures themselves observe `Task.isCancelled`).
         public func run() async throws {
             let subscription = try await client
                 .persistentSubscriptions(stream: stream, group: groupName)
@@ -144,6 +148,7 @@ public enum KurrentProjection {
                     try await subscription.ack(readEvents: result.event)
                 } catch {
                     // Failure handling (nack via RetryPolicy) — implemented in Task 10.
+                    // TODO(Task 10): replace this log-only placeholder with RetryPolicy + nack flow.
                     logger.error("dispatch failed for event \(record.id) (type: \(record.eventType)): \(error). Failure handling not yet implemented; event will be re-delivered by KurrentDB.")
                 }
             }
