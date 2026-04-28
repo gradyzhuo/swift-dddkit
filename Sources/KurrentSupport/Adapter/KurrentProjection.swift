@@ -8,7 +8,7 @@
 
 public enum KurrentProjection {
 
-    public enum NackAction: Sendable {
+    public enum NackAction: Sendable, Equatable {
         case retry
         case skip
         case park
@@ -20,6 +20,22 @@ public enum KurrentProjection {
 
         public init(reason: String) {
             self.reason = reason
+        }
+    }
+
+    public protocol RetryPolicy: Sendable {
+        func decide(error: any Error, retryCount: Int) -> NackAction
+    }
+
+    public struct MaxRetriesPolicy: RetryPolicy {
+        public let max: Int
+
+        public init(max: Int = 5) {
+            self.max = max
+        }
+
+        public func decide(error: any Error, retryCount: Int) -> NackAction {
+            retryCount >= max ? .skip : .retry
         }
     }
 }
