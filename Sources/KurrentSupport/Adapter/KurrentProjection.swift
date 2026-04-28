@@ -14,4 +14,12 @@ public enum KurrentProjection {
         case park
         case stop
     }
+
+    public struct RunnerStopped: Error, Sendable {
+        public let reason: String
+
+        public init(reason: String) {
+            self.reason = reason
+        }
+    }
 }
