@@ -157,7 +157,7 @@ public enum KurrentProjection {
             execute: @Sendable @escaping (Input) async throws -> Void
         ) -> Self {
             let registration = Registration(dispatch: { record in
-                guard Self._shouldDispatchForTesting(
+                guard Self._shouldDispatch(
                     eventType: record.eventType, filter: eventFilter
                 ) else { return }
                 guard let input = extractInput(record) else { return }
@@ -247,9 +247,9 @@ public enum KurrentProjection {
             _registrations.withLock { $0.count }
         }
 
-        // Test-only — used by unit tests to verify filter integration.
-        // Internal access; not part of the public API.
-        internal static func _shouldDispatchForTesting(
+        // Internal — pure filter-check used by the production dispatch closure
+        // and by unit tests. Not part of the public API.
+        internal static func _shouldDispatch(
             eventType: String,
             filter: (any EventTypeFilter)?
         ) -> Bool {
