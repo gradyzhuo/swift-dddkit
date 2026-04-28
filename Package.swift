@@ -120,7 +120,6 @@ let package = Package(
             dependencies: [
                 "KurrentSupport",
                 "EventSourcing",
-                "ReadModelPersistence",
                 "TestUtility",
                 .product(name: "KurrentDB", package: "swift-kurrentdb"),
             ]),

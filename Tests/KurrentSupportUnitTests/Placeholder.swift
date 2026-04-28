@@ -2,5 +2,5 @@ import Testing
 
 @Suite("KurrentSupportUnitTests Placeholder")
 struct KurrentSupportUnitTestsPlaceholder {
-    @Test func placeholder() { #expect(Bool(true)) }
+    @Test func placeholder() {}
 }
