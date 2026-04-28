@@ -1,5 +1,9 @@
 import Testing
 import KurrentDB
+import EventSourcing
+import ReadModelPersistence
+import DDDCore
+import Foundation
 @testable import KurrentSupport
 
 @Suite("KurrentProjection.PersistentSubscriptionRunner — setup")
@@ -46,22 +50,17 @@ struct KurrentProjectionRunnerSetupTests {
     }
 }
 
-import EventSourcing
-import ReadModelPersistence
-import DDDCore
-import Foundation
-
 private struct StubReadModel: ReadModel, Sendable {
     typealias ID = String
     let id: String
 }
 
-private struct StubInput: CQRSProjectorInput, Sendable {
+private struct StubInput: CQRSProjectorInput {
     let id: String
 }
 
 // Minimal in-memory coordinator for tests — never actually called by registration.
-private final class StubCoordinator: EventStorageCoordinator, @unchecked Sendable {
+private struct StubCoordinator: EventStorageCoordinator {
     func fetchEvents(byId id: String) async throws -> (events: [any DomainEvent], latestRevision: UInt64)? { nil }
     func fetchEvents(byId id: String, afterRevision revision: UInt64) async throws -> (events: [any DomainEvent], latestRevision: UInt64)? { nil }
     func append(events: [any DomainEvent], byId id: String, version: UInt64?, external: [String : String]?) async throws -> UInt64? { nil }
@@ -82,9 +81,9 @@ private struct StubProjector: EventSourcingProjector {
 extension KurrentProjectionRunnerSetupTests {
 
     @Test("register high-level overload (StatefulEventSourcingProjector) is chainable")
-    func highLevelRegisterChains() async {
+    func highLevelRegisterChains() {
         let client = KurrentDBClient(settings: .localhost())
-        let store = await InMemoryReadModelStore<StubReadModel>()
+        let store = InMemoryReadModelStore<StubReadModel>()
         let projector = StubProjector(coordinator: StubCoordinator())
         let stateful = StatefulEventSourcingProjector(projector: projector, store: store)
 

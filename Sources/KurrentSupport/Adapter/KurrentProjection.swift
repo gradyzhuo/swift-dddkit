@@ -85,7 +85,7 @@ public enum KurrentProjection {
         ///   re-delivery; `StatefulEventSourcingProjector` handles this naturally
         ///   via its stored revision cursor (subsequent invocations become no-ops).
         @discardableResult
-        public func register<Projector: EventSourcingProjector & Sendable, Store: ReadModelStore>(
+        public func register<Projector: EventSourcingProjector, Store: ReadModelStore>(
             _ stateful: StatefulEventSourcingProjector<Projector, Store>,
             extractInput: @Sendable @escaping (RecordedEvent) -> Projector.Input?
         ) -> Self
