@@ -157,9 +157,8 @@ public enum KurrentProjection {
                 guard Self._shouldDispatch(eventType: record.eventType, filter: eventFilter) else { return }
                 guard let input = extractInput(record) else { return }
 
-                // Inline fetch + apply + save — replaces what StatefulEventSourcingProjector did.
-                let modelId = input.id
-                if let stored = try await store.fetch(byId: modelId) {
+                // Incremental fold: fetch from stored revision, apply, save.
+                if let stored = try await store.fetch(byId: input.id) {
                     guard let result = try await projector.coordinator.fetchEvents(
                         byId: input.id, afterRevision: stored.revision
                     ) else { return }
@@ -352,9 +351,8 @@ public enum KurrentProjection {
                 guard let input = extractInput(record) else { return }
                 let store = storeFactory(tx)
 
-                // Inline fetch + apply + save — replaces what StatefulEventSourcingProjector did.
-                let modelId = input.id
-                if let stored = try await store.fetch(byId: modelId, in: tx) {
+                // Incremental fold: fetch from stored revision, apply, save.
+                if let stored = try await store.fetch(byId: input.id, in: tx) {
                     // Incremental path: only events newer than stored revision
                     guard let result = try await projector.coordinator.fetchEvents(
                         byId: input.id, afterRevision: stored.revision
