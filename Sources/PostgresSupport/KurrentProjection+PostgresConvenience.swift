@@ -1,6 +1,6 @@
 //
 //  KurrentProjection+PostgresConvenience.swift
-//  ReadModelPersistencePostgres
+//  PostgresSupport
 //
 //  Application-layer convenience init for the Postgres common case.
 //  Hides the `TransactionProvider` ceremony for users who just want PG.
@@ -12,6 +12,7 @@ import Foundation
 import KurrentDB
 import KurrentSupport
 import EventSourcing
+import ReadModelPersistencePostgres
 import PostgresNIO
 import Logging
 

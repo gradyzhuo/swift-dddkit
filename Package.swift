@@ -30,6 +30,9 @@ let package = Package(
             name: "ReadModelPersistencePostgres",
             targets: ["ReadModelPersistencePostgres"]),
         .library(
+            name: "PostgresSupport",
+            targets: ["PostgresSupport"]),
+        .library(
             name: "DomainEventGenerator",
             targets: ["DomainEventGenerator"]),
        .plugin(name: "DomainEventGeneratorPlugin", targets: [
@@ -100,10 +103,17 @@ let package = Package(
             dependencies: [
                 "ReadModelPersistence",
                 "EventSourcing",
+                .product(name: "PostgresNIO", package: "postgres-nio"),
+            ]),
+        .target(
+            name: "PostgresSupport",
+            dependencies: [
+                "ReadModelPersistencePostgres",
                 "KurrentSupport",
+                "EventSourcing",
+                .product(name: "KurrentDB", package: "swift-kurrentdb"),
                 .product(name: "PostgresNIO", package: "postgres-nio"),
                 .product(name: "Logging", package: "swift-log"),
-                .product(name: "KurrentDB", package: "swift-kurrentdb"),
             ]),
         .testTarget(
             name: "ReadModelPersistencePostgresIntegrationTests",
@@ -128,6 +138,7 @@ let package = Package(
                 "EventSourcing",
                 "ReadModelPersistence",
                 "ReadModelPersistencePostgres",
+                "PostgresSupport",
                 "DDDCore",
                 "TestUtility",
                 .product(name: "KurrentDB", package: "swift-kurrentdb"),

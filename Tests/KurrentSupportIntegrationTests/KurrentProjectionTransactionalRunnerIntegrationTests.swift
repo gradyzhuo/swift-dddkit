@@ -2,6 +2,7 @@ import Testing
 import Foundation
 import KurrentDB
 import KurrentSupport
+import PostgresSupport
 import EventSourcing
 import ReadModelPersistence
 import ReadModelPersistencePostgres
