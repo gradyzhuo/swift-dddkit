@@ -265,4 +265,45 @@ public enum KurrentProjection {
     fileprivate struct Registration: Sendable {
         let dispatch: @Sendable (RecordedEvent) async throws -> Void
     }
+
+    /// Transactional projection runner — every event triggers a single shared
+    /// transaction; all registered projectors' writes commit or roll back
+    /// together. Generic over `TransactionProvider`; `PostgresTransactionProvider`
+    /// is the common case (see ReadModelPersistencePostgres convenience init).
+    ///
+    /// Shares retry/nack/cancellation semantics with `PersistentSubscriptionRunner`;
+    /// the only difference is the per-event transaction scope.
+    public final class TransactionalSubscriptionRunner<Provider: TransactionProvider>: Sendable {
+
+        private let client: KurrentDBClient
+        private let transactionProvider: Provider
+        private let stream: String
+        private let groupName: String
+        private let retryPolicy: any RetryPolicy
+        private let logger: Logger
+
+        // Registrations: closure captures projector + storeFactory + extractInput;
+        // signature is (RecordedEvent, Provider.Transaction) async throws -> Void.
+        private let _registrations = Mutex<[TransactionalRegistration<Provider.Transaction>]>([])
+
+        public init(
+            client: KurrentDBClient,
+            transactionProvider: Provider,
+            stream: String,
+            groupName: String,
+            retryPolicy: any RetryPolicy = MaxRetriesPolicy(max: 5),
+            logger: Logger = Logger(label: "KurrentProjection.TransactionalSubscriptionRunner")
+        ) {
+            self.client = client
+            self.transactionProvider = transactionProvider
+            self.stream = stream
+            self.groupName = groupName
+            self.retryPolicy = retryPolicy
+            self.logger = logger
+        }
+    }
+
+    fileprivate struct TransactionalRegistration<Transaction: Sendable>: Sendable {
+        let dispatch: @Sendable (RecordedEvent, Transaction) async throws -> Void
+    }
 }
