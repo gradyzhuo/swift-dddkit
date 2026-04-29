@@ -301,6 +301,71 @@ public enum KurrentProjection {
             self.retryPolicy = retryPolicy
             self.logger = logger
         }
+
+        /// Register a projector with a per-event tx-bound store factory.
+        ///
+        /// `storeFactory` is called once per event with the runner's transaction;
+        /// it returns a tx-bound store. The runner internally inlines fetch +
+        /// apply + save (no `StatefulEventSourcingProjector` exposed to callers).
+        ///
+        /// Pass an `eventFilter` to short-circuit dispatch for event types this
+        /// projector doesn't care about — no `extractInput`, no fetch, no apply.
+        @discardableResult
+        public func register<Projector: EventSourcingProjector & Sendable, Store: TransactionalReadModelStore>(
+            projector: Projector,
+            storeFactory: @Sendable @escaping (Provider.Transaction) -> Store,
+            eventFilter: (any EventTypeFilter)? = nil,
+            extractInput: @Sendable @escaping (RecordedEvent) -> Projector.Input?
+        ) -> Self
+        where Store.Model == Projector.ReadModelType,
+              Store.Transaction == Provider.Transaction,
+              Store.Model.ID == String,
+              Projector.Input: Sendable
+        {
+            let registration = TransactionalRegistration<Provider.Transaction>(dispatch: { record, tx in
+                guard Self._shouldDispatchTx(eventType: record.eventType, filter: eventFilter) else { return }
+                guard let input = extractInput(record) else { return }
+                let store = storeFactory(tx)
+
+                // Inline fetch + apply + save — replaces what StatefulEventSourcingProjector did.
+                let modelId = input.id
+                if let stored = try await store.fetch(byId: modelId, in: tx) {
+                    // Incremental path: only events newer than stored revision
+                    guard let result = try await projector.coordinator.fetchEvents(
+                        byId: input.id, afterRevision: stored.revision
+                    ) else { return }
+                    if result.events.isEmpty { return }
+                    var readModel = stored.readModel
+                    try projector.apply(readModel: &readModel, events: result.events)
+                    try await store.save(readModel: readModel, revision: result.latestRevision, in: tx)
+                } else {
+                    // Full replay path
+                    guard let result = try await projector.coordinator.fetchEvents(byId: input.id) else { return }
+                    guard !result.events.isEmpty else { return }
+                    guard var readModel = try projector.buildReadModel(input: input) else { return }
+                    try projector.apply(readModel: &readModel, events: result.events)
+                    try await store.save(readModel: readModel, revision: result.latestRevision, in: tx)
+                }
+            })
+            _registrations.withLock { $0.append(registration) }
+            return self
+        }
+
+        // Test-only — used by unit tests to verify register chaining.
+        // Internal access; not part of the public API.
+        internal var _registrationCountForTesting: Int {
+            _registrations.withLock { $0.count }
+        }
+
+        // Internal — pure filter-check used by the production dispatch closure
+        // and by unit tests. Not part of the public API.
+        internal static func _shouldDispatchTx(
+            eventType: String,
+            filter: (any EventTypeFilter)?
+        ) -> Bool {
+            guard let filter else { return true }
+            return filter.handles(eventType: eventType)
+        }
     }
 
     fileprivate struct TransactionalRegistration<Transaction: Sendable>: Sendable {
