@@ -118,6 +118,8 @@ Rules:
   co-located in the same target the generator cross-validates at build time; where it is not
   (e.g. a standalone sidecar package), the contract is enforced at runtime by `Decodable` failure
   → the forwarder's existing permanent-park semantics.
+  **v1 status:** only the runtime fallback is implemented — the co-located `event.yaml`
+  build-time cross-check described above is not built yet; see §11.
 
 Generated (per event):
 
@@ -233,3 +235,6 @@ no deployment. After these merge, any such change requires a `.v2`.
 - New notification types beyond `mail`/`inApp` (push etc.) — additive type-schema extensions.
 - Localization/multi-language copy.
 - Digest/quiet-hours interactions (F 區 unchanged).
+- The §4 co-located `event.yaml` build-time cross-check (naming-convention binding validated
+  against the event's actual fields at generation time) — v1 relies solely on the runtime
+  `Decodable`-failure fallback; a build-time check is a recorded follow-up.
