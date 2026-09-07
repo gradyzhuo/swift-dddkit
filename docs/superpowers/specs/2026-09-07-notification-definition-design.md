@@ -56,6 +56,12 @@ CollaboratorDescription:
   inputs:
     - quotingCaseGroupingId: String
     - collaboratorId: String
+
+QuotingCaseGroupCollaboratorRole:
+  placeholder: QuotingCaseGroupCollaboratorRole
+  inputs:
+    - quotingCaseGroupingId: String
+    - collaboratorId: String
 ```
 
 Rules:
@@ -71,8 +77,9 @@ Generated (per yaml, protocol name from a small generator config, mirroring
 
 ```swift
 public protocol OpportunityNotificationVariables: Sendable {
-    func quotingCaseGroupName(quotingCaseGroupingId: String) async throws -> String
     func collaboratorDescription(quotingCaseGroupingId: String, collaboratorId: String) async throws -> String
+    func quotingCaseGroupCollaboratorRole(quotingCaseGroupingId: String, collaboratorId: String) async throws -> String
+    func quotingCaseGroupName(quotingCaseGroupingId: String) async throws -> String
 }
 ```
 
